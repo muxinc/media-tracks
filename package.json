@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "esbuild src/index.ts --bundle --outdir=dist --servedir=.",
-    "build": "rm -rf dist && esbuild src/index.ts --target=es2019 --format=esm --bundle --minify --outdir=dist"
+    "build": "rm -rf dist && esbuild src/index.ts --target=es2019 --format=iife --bundle --minify --outdir=dist"
   },
   "author": "@muxinc",
   "license": "MIT",

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Media Tracks</title>
+    <script src="./dist/index.js"></script>
+  </head>
+  <body>
+
+    <video
+      src="http://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/high.mp4"
+      crossorigin
+      controls
+      muted
+      autoplay
+    ></video>
+
+    <script>
+      const myVideo = document.querySelector('video');
+
+      myVideo.addEventListener('emptied', (e) => {
+        console.log(e.type, performance.now());
+      });
+
+      myVideo.addEventListener('loadstart', (e) => {
+        console.log(e.type, performance.now());
+      });
+
+      myVideo.addEventListener('loadedmetadata', (e) => {
+        console.log(e.type, performance.now());
+      });
+
+      myVideo.addEventListener('loadeddata', (e) => {
+        console.log(e.type, performance.now());
+      });
+
+      myVideo.addEventListener('resize', (e) => {
+        console.log(e.type, performance.now());
+      });
+
+      myVideo.addEventListener('canplay', (e) => {
+        console.log(e.type, performance.now());
+      });
+
+      myVideo.videoTracks.addEventListener('change', (e) => {
+        console.log(e.type, performance.now());
+      })
+
+      myVideo.videoTracks.addEventListener('addtrack', (e) => {
+        console.log(e.type, performance.now());
+      })
+
+      myVideo.videoTracks.addEventListener('removetrack', (e) => {
+        console.log(e.type, performance.now());
+      })
+
+      myVideo.addEventListener('play', function(event) {
+        console.log(event.type);
+        console.log(myVideo.videoTracks)
+        console.log(myVideo.videoTracks[0])
+        // console.log(Object.getPrototypeOf(myVideo.videoTracks[0]))
+      });
+
+      setTimeout(() => {
+        myVideo.removeAttribute('src');
+        myVideo.load();
+      }, 5000);
+    </script>
+
+  </body>
+</html>

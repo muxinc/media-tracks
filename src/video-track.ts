@@ -1,4 +1,6 @@
 import type { VideoTrackList } from './video-track-list';
+import { VideoRendition } from './video-rendition';
+import { VideoRenditionList } from './video-rendition-list';
 
 export const trackToLists = new Map();
 
@@ -8,7 +10,7 @@ export const VideoTrackKind = {
   main: 'main',
   sign: 'sign',
   subtitles: 'subtitles',
-  commentary: 'commentary'
+  commentary: 'commentary',
 };
 
 export class VideoTrack {
@@ -17,6 +19,27 @@ export class VideoTrack {
   label: string = '';
   language: string = '';
   #selected = false;
+  #renditions = new VideoRenditionList();
+
+  addRendition(
+    width: number,
+    height: number,
+    frameRate: number,
+    bitrate: number,
+    codec?: string
+  ) {
+    const rendition = new VideoRendition();
+    rendition.width = width;
+    rendition.height = height;
+    rendition.frameRate = frameRate;
+    rendition.bitrate = bitrate;
+    this.#renditions.addRendition(rendition);
+    return rendition;
+  }
+
+  get renditions() {
+    return this.#renditions;
+  }
 
   get selected(): boolean {
     return this.#selected;
@@ -38,7 +61,9 @@ export class VideoTrack {
         hasUnselected = true;
       });
       if (hasUnselected) {
-        videoTrackList.dispatchEvent(new CustomEvent('change', { detail: this }));
+        videoTrackList.dispatchEvent(
+          new CustomEvent('change', { detail: this })
+        );
       }
     });
   }

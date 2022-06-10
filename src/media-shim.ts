@@ -1,21 +1,43 @@
 import { VideoTrack, VideoTrackKind } from './video-track';
 import { VideoTrackList } from './video-track-list';
+import { AudioTrack, AudioTrackKind } from './audio-track';
+import { AudioTrackList } from './audio-track-list';
 
+let trackIdCount = 0;
 const videoTrackLists = new WeakMap();
+const audioTrackLists = new WeakMap();
 
 const getNativeVideoTracks = Object.getOwnPropertyDescriptor(
   HTMLMediaElement.prototype,
   'videoTracks'
 )?.get;
 
+const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
+  HTMLMediaElement.prototype,
+  'audioTracks'
+)?.get;
+
 Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
   get() {
     // Safari does support `.videoTracks`
-    const nativeVideoTracks = getNativeVideoTracks?.call(this);
-    if (nativeVideoTracks) {
-      return nativeVideoTracks;
-    }
+    // const nativeVideoTracks = getNativeVideoTracks?.call(this);
+    // if (nativeVideoTracks) {
+    //   console.log(99);
+    //   return nativeVideoTracks;
+    // }
     return initVideoTrackList(this);
+  },
+});
+
+Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
+  get() {
+    // Safari does support `.audioTracks`
+    // const nativeAudioTracks = getNativeAudioTracks?.call(this);
+    // if (nativeAudioTracks) {
+    //   console.log(99);
+    //   return nativeAudioTracks;
+    // }
+    return initAudioTrackList(this);
   },
 });
 
@@ -33,6 +55,18 @@ Object.defineProperty(HTMLMediaElement.prototype, 'addVideoTrack', {
   },
 });
 
+Object.defineProperty(HTMLMediaElement.prototype, 'addAudioTrack', {
+  value: function (kind: string, label = '', language = '') {
+    let audioTrackList = initAudioTrackList(this);
+    const track = new AudioTrack();
+    track.kind = kind;
+    track.label = label;
+    track.language = language;
+    audioTrackList.addTrack(track);
+    return track;
+  },
+});
+
 function initVideoTrackList(video: HTMLVideoElement) {
   let videoTrackList = videoTrackLists.get(video);
   if (!videoTrackList) {
@@ -45,7 +79,7 @@ function initVideoTrackList(video: HTMLVideoElement) {
         video.readyState >= HTMLMediaElement.HAVE_METADATA
       ) {
         const track = (video as any).addVideoTrack(VideoTrackKind.main);
-        track.id = '1';
+        track.id = ++trackIdCount;
 
         // const rendition = track.addRendition(
         //   video.videoWidth,
@@ -68,4 +102,38 @@ function initVideoTrackList(video: HTMLVideoElement) {
   }
 
   return videoTrackList;
+}
+
+function initAudioTrackList(audio: HTMLAudioElement) {
+  let audioTrackList = audioTrackLists.get(audio);
+  if (!audioTrackList) {
+    audioTrackList = new AudioTrackList();
+    audioTrackLists.set(audio, audioTrackList);
+
+    const initMainTrack = () => {
+      if (
+        !audioTrackList.length &&
+        audio.readyState >= HTMLMediaElement.HAVE_METADATA
+      ) {
+        const track = (audio as any).addAudioTrack(AudioTrackKind.main);
+        track.id = ++trackIdCount;
+
+        // const rendition = track.addRendition();
+        // rendition.id = '1';
+        // rendition.selected = true;
+
+        track.enabled = true;
+      }
+    };
+
+    const destroyTracks = () => {
+      [...audioTrackList].forEach((track) => audioTrackList.removeTrack(track));
+    };
+
+    initMainTrack();
+    audio.addEventListener('loadedmetadata', initMainTrack);
+    audio.addEventListener('emptied', destroyTracks);
+  }
+
+  return audioTrackList;
 }

@@ -1,7 +1,7 @@
-import { VideoTrack, videoTrackToLists } from './video-track';
+import { AudioTrack, audioTrackToLists } from './audio-track';
 
-export class VideoTrackList extends EventTarget {
-  #tracks: VideoTrack[] = [];
+export class AudioTrackList extends EventTarget {
+  #tracks: AudioTrack[] = [];
   #addTrackCallback?: () => void;
   #removeTrackCallback?: () => void;
   #changeCallback?: () => void;
@@ -14,14 +14,14 @@ export class VideoTrackList extends EventTarget {
     return this.#tracks.length;
   }
 
-  addTrack(track: VideoTrack) {
+  addTrack(track: AudioTrack) {
     // can tracks belong to more track lists? todo add logic for that
-    videoTrackToLists.set(track, new Set([this]));
+    audioTrackToLists.set(track, new Set([this]));
 
     const length = this.#tracks.push(track);
     const index = length - 1;
 
-    Object.defineProperty(VideoTrackList.prototype, index, {
+    Object.defineProperty(AudioTrackList.prototype, index, {
       get() {
         return this.#tracks[index];
       }
@@ -30,14 +30,14 @@ export class VideoTrackList extends EventTarget {
     this.dispatchEvent(new CustomEvent('addtrack', { detail: track }));
   }
 
-  removeTrack(track: VideoTrack) {
-    videoTrackToLists.delete(track);
+  removeTrack(track: AudioTrack) {
+    audioTrackToLists.delete(track);
 
     this.#tracks.splice(this.#tracks.indexOf(track), 1);
     this.dispatchEvent(new CustomEvent('removetrack', { detail: track }));
   }
 
-  getTrackById(id: string): VideoTrack | null {
+  getTrackById(id: string): AudioTrack | null {
     return this.#tracks.find((track) => track.id === id) ?? null;
   }
 

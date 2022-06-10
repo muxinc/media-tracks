@@ -16,8 +16,8 @@ export const AudioTrackKind = {
 export class AudioTrack {
   id?: string;
   kind?: string;
-  label: string = '';
-  language: string = '';
+  label?: string = '';
+  language?: string = '';
   sourceBuffer?: SourceBuffer;
   #enabled = false;
   #renditions = new AudioRenditionList();

@@ -75,7 +75,7 @@ function initVideoTrackList(video: HTMLVideoElement) {
 
     const initMainTrack = () => {
       if (
-        !videoTrackList.length &&
+        ![...videoTrackList].find((t: VideoTrack) => t.kind === 'main') &&
         video.readyState >= HTMLMediaElement.HAVE_METADATA
       ) {
         const track = (video as any).addVideoTrack(VideoTrackKind.main);
@@ -112,7 +112,7 @@ function initAudioTrackList(audio: HTMLAudioElement) {
 
     const initMainTrack = () => {
       if (
-        !audioTrackList.length &&
+        ![...audioTrackList].find((t: AudioTrack) => t.kind === 'main') &&
         audio.readyState >= HTMLMediaElement.HAVE_METADATA
       ) {
         const track = (audio as any).addAudioTrack(AudioTrackKind.main);

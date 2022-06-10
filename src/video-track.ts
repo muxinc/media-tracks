@@ -16,8 +16,8 @@ export const VideoTrackKind = {
 export class VideoTrack {
   id?: string;
   kind?: string;
-  label: string = '';
-  language: string = '';
+  label?: string = '';
+  language?: string = '';
   sourceBuffer?: SourceBuffer;
   #selected = false;
   #renditions = new VideoRenditionList();

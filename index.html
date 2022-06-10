@@ -6,13 +6,41 @@
   </head>
   <body>
 
+    <!--
+      Also imagine this can be any of our custom video elements accepting M3U8's, YT urls, Wistia url's
+    -->
+
     <video
-      src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/low.mp4"
       crossorigin
       controls
       muted
       autoplay
-    ></video>
+    >
+      <source src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/low.mp4" type="video/mp4">
+
+      <video-track src="https://stream.mux.com/wZVuDk502pA5sDcPGdQGj0000xWNhYTnpNULs01f29dcOAg/low.mp4" srclang="fr" label="French" kind="translation">
+        <!-- TODO: should be able to support <source> tags too -->
+        <source src="" type="video/mp4">
+        <!-- And soon also our own custom source element that supports media queries and renditions? -->
+        <!-- <responsive-source
+          media="(orientation: landscape)"
+          width="1920"
+          height="1080"
+          timeout="2000"
+          posterset="
+            https://image.mux.com/xLGf7y8cRquv7QXoDB02zEe6centwKfVmUOiPSY02JhCE/thumbnail.jpg?time=0&width=1920 1920w,
+            https://image.mux.com/xLGf7y8cRquv7QXoDB02zEe6centwKfVmUOiPSY02JhCE/thumbnail.jpg?time=0&width=960 960w,
+            https://image.mux.com/xLGf7y8cRquv7QXoDB02zEe6centwKfVmUOiPSY02JhCE/thumbnail.jpg?time=0&width=640 640w"
+          srcset="
+            https://stream.mux.com/xLGf7y8cRquv7QXoDB02zEe6centwKfVmUOiPSY02JhCE/high.mp4 1920w,
+            https://stream.mux.com/xLGf7y8cRquv7QXoDB02zEe6centwKfVmUOiPSY02JhCE/medium.mp4 960w,
+            https://stream.mux.com/xLGf7y8cRquv7QXoDB02zEe6centwKfVmUOiPSY02JhCE/low.mp4 640w"
+          type="video/mp4"
+        ></responsive-source> -->
+      </video-track>
+
+      <audio-track src="https://www.dropbox.com/s/77h8863xr92odts/Mad%20Max%20La%20Route%20Du%20Chaos%20-%20French.m4a?dl=1" srclang="fr" label="French" kind="translation"></audio-track>
+    </video>
 
     <script>
       const myVideo = document.querySelector('video');
@@ -62,6 +90,7 @@
 
       setTimeout(() => {
         myVideo.removeAttribute('src');
+        myVideo.querySelectorAll('source').forEach((el) => el.remove());
         myVideo.load();
       }, 5000);
     </script>

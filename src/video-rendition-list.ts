@@ -1,4 +1,5 @@
-import { VideoRendition, renditionToLists } from './video-rendition';
+import { VideoRendition, videoRenditionToLists } from './video-rendition';
+import { RenditionEvent } from './rendition-event';
 
 export class VideoRenditionList extends EventTarget {
   #renditions: VideoRendition[] = [];
@@ -16,27 +17,27 @@ export class VideoRenditionList extends EventTarget {
 
   addRendition(rendition: VideoRendition) {
     // can renditions belong to more rendition lists? todo add logic for that
-    renditionToLists.set(rendition, new Set([this]));
+    videoRenditionToLists.set(rendition, new Set([this]));
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
 
-    Object.defineProperty(VideoRenditionList.prototype, index, {
-      get() {
-        return this.#renditions[index];
-      },
-    });
+    if (!(index in VideoRenditionList.prototype)) {
+      Object.defineProperty(VideoRenditionList.prototype, index, {
+        get() {
+          return this.#renditions[index];
+        },
+      });
+    }
 
-    this.dispatchEvent(new CustomEvent('addrendition', { detail: rendition }));
+    this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
   }
 
   removeRendition(rendition: VideoRendition) {
-    renditionToLists.delete(rendition);
+    videoRenditionToLists.delete(rendition);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
-    this.dispatchEvent(
-      new CustomEvent('removerendition', { detail: rendition })
-    );
+    this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
   }
 
   getRenditionById(id: string): VideoRendition | null {

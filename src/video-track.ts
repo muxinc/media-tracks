@@ -23,17 +23,20 @@ export class VideoTrack {
   #renditions = new VideoRenditionList();
 
   addRendition(
-    width: number,
-    height: number,
-    frameRate: number,
-    bitrate: number,
+    src: string,
+    width?: number,
+    height?: number,
+    frameRate?: number,
+    bitrate?: number,
     codec?: string
   ) {
     const rendition = new VideoRendition();
+    rendition.src = src;
     rendition.width = width;
     rendition.height = height;
     rendition.frameRate = frameRate;
     rendition.bitrate = bitrate;
+    rendition.codec = codec;
     this.#renditions.addRendition(rendition);
     return rendition;
   }
@@ -62,9 +65,7 @@ export class VideoTrack {
         hasUnselected = true;
       });
       if (hasUnselected) {
-        videoTrackList.dispatchEvent(
-          new CustomEvent('change', { detail: this })
-        );
+        videoTrackList.dispatchEvent(new Event('change'));
       }
     });
   }

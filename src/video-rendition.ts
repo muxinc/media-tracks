@@ -1,6 +1,6 @@
 import type { VideoRenditionList } from './video-rendition-list';
 
-export const renditionToLists = new Map();
+export const videoRenditionToLists = new Map();
 
 export class VideoRendition {
   src?: string;
@@ -22,7 +22,7 @@ export class VideoRendition {
 
     if (val !== true) return;
 
-    const videoRenditionLists = renditionToLists.get(this) ?? [];
+    const videoRenditionLists = videoRenditionToLists.get(this) ?? [];
     videoRenditionLists.forEach((videoRenditionList: VideoRenditionList) => {
       // If other renditions are unselected, then a change event will be fired.
       let hasUnselected = false;
@@ -32,9 +32,7 @@ export class VideoRendition {
         hasUnselected = true;
       });
       if (hasUnselected) {
-        videoRenditionList.dispatchEvent(
-          new CustomEvent('change', { detail: this })
-        );
+        videoRenditionList.dispatchEvent(new Event('change'));
       }
     });
   }

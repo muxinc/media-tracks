@@ -3,9 +3,7 @@ import { VideoTrackList } from './video-track-list';
 import { AudioTrack, AudioTrackKind } from './audio-track';
 import { AudioTrackList } from './audio-track-list';
 
-let trackIdCount = 0;
-const videoTrackLists = new WeakMap();
-const audioTrackLists = new WeakMap();
+let mediaState = new WeakMap();
 
 const getNativeVideoTracks = Object.getOwnPropertyDescriptor(
   HTMLMediaElement.prototype,
@@ -67,72 +65,83 @@ Object.defineProperty(HTMLMediaElement.prototype, 'addAudioTrack', {
   },
 });
 
-function initVideoTrackList(video: HTMLVideoElement) {
-  let videoTrackList = videoTrackLists.get(video);
+function initVideoTrackList(media: HTMLVideoElement) {
+  let state = mediaState.get(media);
+  if (!state) mediaState.set(media, (state = { trackIdCount: 0 }));
+
+  let videoTrackList = state.videoTrackList;
   if (!videoTrackList) {
     videoTrackList = new VideoTrackList();
-    videoTrackLists.set(video, videoTrackList);
+    state.videoTrackList = videoTrackList;
 
+    let mainTrack: VideoTrack;
     const initMainTrack = () => {
       if (
-        !videoTrackList.length &&
-        video.readyState >= HTMLMediaElement.HAVE_METADATA
+        ![...videoTrackList].find((t: VideoTrack) => t.kind === 'main') &&
+        media.readyState >= HTMLMediaElement.HAVE_METADATA
       ) {
-        const track = (video as any).addVideoTrack(VideoTrackKind.main);
-        track.id = ++trackIdCount;
+        mainTrack = (media as any).addVideoTrack(VideoTrackKind.main);
+        mainTrack.id = `${++state.trackIdCount}`;
 
-        // const rendition = track.addRendition(
-        //   video.videoWidth,
-        //   video.videoHeight
-        // );
-        // rendition.id = '1';
-        // rendition.selected = true;
+        const rendition = mainTrack.addRendition(
+          media.currentSrc,
+          media.videoWidth,
+          media.videoHeight
+        );
+        rendition.selected = true;
 
-        track.selected = true;
+        if (![...videoTrackList].some(track => track.selected)) {
+          mainTrack.selected = true;
+        }
       }
     };
 
-    const destroyTracks = () => {
-      [...videoTrackList].forEach((track) => videoTrackList.removeTrack(track));
+    const destroyTrack = () => {
+      videoTrackList.removeTrack(mainTrack);
     };
 
     initMainTrack();
-    video.addEventListener('loadedmetadata', initMainTrack);
-    video.addEventListener('emptied', destroyTracks);
+    media.addEventListener('loadedmetadata', initMainTrack);
+    media.addEventListener('emptied', destroyTrack);
   }
 
   return videoTrackList;
 }
 
-function initAudioTrackList(audio: HTMLAudioElement) {
-  let audioTrackList = audioTrackLists.get(audio);
+function initAudioTrackList(media: HTMLMediaElement) {
+  let state = mediaState.get(media);
+  if (!state) mediaState.set(media, (state = { trackIdCount: 0 }));
+
+  let audioTrackList = state.audioTrackList;
   if (!audioTrackList) {
     audioTrackList = new AudioTrackList();
-    audioTrackLists.set(audio, audioTrackList);
+    state.audioTrackList = audioTrackList;
 
+    let mainTrack: AudioTrack;
     const initMainTrack = () => {
       if (
-        !audioTrackList.length &&
-        audio.readyState >= HTMLMediaElement.HAVE_METADATA
+        ![...audioTrackList].find((t: AudioTrack) => t.kind === 'main') &&
+        media.readyState >= HTMLMediaElement.HAVE_METADATA
       ) {
-        const track = (audio as any).addAudioTrack(AudioTrackKind.main);
-        track.id = ++trackIdCount;
+        mainTrack = (media as any).addAudioTrack(AudioTrackKind.main);
+        mainTrack.id = `${++state.trackIdCount}`;
 
-        // const rendition = track.addRendition();
-        // rendition.id = '1';
-        // rendition.selected = true;
+        const rendition = mainTrack.addRendition(media.src);
+        rendition.selected = true;
 
-        track.enabled = true;
+        if (![...audioTrackList].some(track => track.selected)) {
+          mainTrack.enabled = true;
+        }
       }
     };
 
-    const destroyTracks = () => {
-      [...audioTrackList].forEach((track) => audioTrackList.removeTrack(track));
+    const destroyTrack = () => {
+      audioTrackList.removeTrack(mainTrack);
     };
 
     initMainTrack();
-    audio.addEventListener('loadedmetadata', initMainTrack);
-    audio.addEventListener('emptied', destroyTracks);
+    media.addEventListener('loadedmetadata', initMainTrack);
+    media.addEventListener('emptied', destroyTrack);
   }
 
   return audioTrackList;

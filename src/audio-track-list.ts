@@ -1,5 +1,7 @@
 import { AudioTrack, audioTrackToLists } from './audio-track';
+import { TrackEvent } from './track-event';
 
+// https://html.spec.whatwg.org/multipage/media.html#audiotracklist
 export class AudioTrackList extends EventTarget {
   #tracks: AudioTrack[] = [];
   #addTrackCallback?: () => void;
@@ -21,28 +23,26 @@ export class AudioTrackList extends EventTarget {
     const length = this.#tracks.push(track);
     const index = length - 1;
 
-    Object.defineProperty(AudioTrackList.prototype, index, {
-      get() {
-        return this.#tracks[index];
-      }
-    });
+    if (!(index in AudioTrackList.prototype)) {
+      Object.defineProperty(AudioTrackList.prototype, index, {
+        get() {
+          return this.#tracks[index];
+        }
+      });
+    }
 
-    this.dispatchEvent(new CustomEvent('addtrack', { detail: track }));
+    this.dispatchEvent(new TrackEvent('addtrack', { track }));
   }
 
   removeTrack(track: AudioTrack) {
     audioTrackToLists.delete(track);
 
     this.#tracks.splice(this.#tracks.indexOf(track), 1);
-    this.dispatchEvent(new CustomEvent('removetrack', { detail: track }));
+    this.dispatchEvent(new TrackEvent('removetrack', { track }));
   }
 
   getTrackById(id: string): AudioTrack | null {
     return this.#tracks.find((track) => track.id === id) ?? null;
-  }
-
-  get selectedIndex() {
-    return this.#tracks.findIndex((track) => track.selected);
   }
 
   get onaddtrack() {

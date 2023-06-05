@@ -1,4 +1,5 @@
-import { AudioRendition, renditionToLists } from './audio-rendition';
+import { AudioRendition, audioRenditionToLists } from './audio-rendition';
+import { RenditionEvent } from './rendition-event';
 
 export class AudioRenditionList extends EventTarget {
   #renditions: AudioRendition[] = [];
@@ -16,27 +17,27 @@ export class AudioRenditionList extends EventTarget {
 
   addRendition(rendition: AudioRendition) {
     // can renditions belong to more rendition lists? todo add logic for that
-    renditionToLists.set(rendition, new Set([this]));
+    audioRenditionToLists.set(rendition, new Set([this]));
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
 
-    Object.defineProperty(AudioRenditionList.prototype, index, {
-      get() {
-        return this.#renditions[index];
-      },
-    });
+    if (!(index in AudioRenditionList.prototype)) {
+      Object.defineProperty(AudioRenditionList.prototype, index, {
+        get() {
+          return this.#renditions[index];
+        },
+      });
+    }
 
-    this.dispatchEvent(new CustomEvent('addrendition', { detail: rendition }));
+    this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
   }
 
   removeRendition(rendition: AudioRendition) {
-    renditionToLists.delete(rendition);
+    audioRenditionToLists.delete(rendition);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
-    this.dispatchEvent(
-      new CustomEvent('removerendition', { detail: rendition })
-    );
+    this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
   }
 
   getRenditionById(id: string): AudioRendition | null {

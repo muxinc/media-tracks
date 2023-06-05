@@ -22,9 +22,11 @@ export class AudioTrack {
   #enabled = false;
   #renditions = new AudioRenditionList();
 
-  addRendition(bitrate: number, codec?: string) {
+  addRendition(src: string, bitrate?: number, codec?: string) {
     const rendition = new AudioRendition();
+    rendition.src = src;
     rendition.bitrate = bitrate;
+    rendition.codec = codec;
     this.#renditions.addRendition(rendition);
     return rendition;
   }
@@ -47,9 +49,7 @@ export class AudioTrack {
     // at the AudioTrackList object.
     const audioTrackLists = audioTrackToLists.get(this) ?? [];
     audioTrackLists.forEach((audioTrackList: AudioTrackList) => {
-      audioTrackList.dispatchEvent(
-        new CustomEvent('change', { detail: this })
-      );
+      audioTrackList.dispatchEvent(new Event('change'));
     });
   }
 }

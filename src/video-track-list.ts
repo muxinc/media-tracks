@@ -1,5 +1,7 @@
 import { VideoTrack, videoTrackToLists } from './video-track';
+import { TrackEvent } from './track-event';
 
+// https://html.spec.whatwg.org/multipage/media.html#videotracklist
 export class VideoTrackList extends EventTarget {
   #tracks: VideoTrack[] = [];
   #addTrackCallback?: () => void;
@@ -21,20 +23,22 @@ export class VideoTrackList extends EventTarget {
     const length = this.#tracks.push(track);
     const index = length - 1;
 
-    Object.defineProperty(VideoTrackList.prototype, index, {
-      get() {
-        return this.#tracks[index];
-      }
-    });
+    if (!(index in VideoTrackList.prototype)) {
+      Object.defineProperty(VideoTrackList.prototype, index, {
+        get() {
+          return this.#tracks[index];
+        }
+      });
+    }
 
-    this.dispatchEvent(new CustomEvent('addtrack', { detail: track }));
+    this.dispatchEvent(new TrackEvent('addtrack', { track }));
   }
 
   removeTrack(track: VideoTrack) {
     videoTrackToLists.delete(track);
 
     this.#tracks.splice(this.#tracks.indexOf(track), 1);
-    this.dispatchEvent(new CustomEvent('removetrack', { detail: track }));
+    this.dispatchEvent(new TrackEvent('removetrack', { track }));
   }
 
   getTrackById(id: string): VideoTrack | null {

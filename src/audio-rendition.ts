@@ -1,6 +1,6 @@
 import type { AudioRenditionList } from './audio-rendition-list';
 
-export const renditionToLists = new Map();
+export const audioRenditionToLists = new Map();
 
 export class AudioRendition {
   src?: string;
@@ -19,7 +19,7 @@ export class AudioRendition {
 
     if (val !== true) return;
 
-    const audioRenditionLists = renditionToLists.get(this) ?? [];
+    const audioRenditionLists = audioRenditionToLists.get(this) ?? [];
     audioRenditionLists.forEach((audioRenditionList: AudioRenditionList) => {
       // If other renditions are unselected, then a change event will be fired.
       let hasUnselected = false;
@@ -29,9 +29,7 @@ export class AudioRendition {
         hasUnselected = true;
       });
       if (hasUnselected) {
-        audioRenditionList.dispatchEvent(
-          new CustomEvent('change', { detail: this })
-        );
+        audioRenditionList.dispatchEvent(new Event('change'));
       }
     });
   }

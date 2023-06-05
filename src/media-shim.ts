@@ -33,7 +33,7 @@ Object.defineProperty(HTMLMediaElement.prototype, 'addVideoTrack', {
   },
 });
 
-function initVideoTrackList(video: HTMLMediaElement) {
+function initVideoTrackList(video: HTMLVideoElement) {
   let videoTrackList = videoTrackLists.get(video);
   if (!videoTrackList) {
     videoTrackList = new VideoTrackList();
@@ -46,6 +46,14 @@ function initVideoTrackList(video: HTMLMediaElement) {
       ) {
         const track = (video as any).addVideoTrack(VideoTrackKind.main);
         track.id = '1';
+
+        // const rendition = track.addRendition(
+        //   video.videoWidth,
+        //   video.videoHeight
+        // );
+        // rendition.id = '1';
+        // rendition.selected = true;
+
         track.selected = true;
       }
     };

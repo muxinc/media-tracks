@@ -55,8 +55,8 @@
 
       myVideo.addEventListener('play', function(event) {
         console.log(event.type);
-        console.log(myVideo.videoTracks)
-        console.log(myVideo.videoTracks[0])
+        console.log(myVideo.videoTracks, myVideo.audioTracks)
+        console.log(myVideo.videoTracks[0], myVideo.audioTracks[0])
         // console.log(Object.getPrototypeOf(myVideo.videoTracks[0]))
       });
 

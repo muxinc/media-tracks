@@ -2,7 +2,7 @@ import type { VideoTrackList } from './video-track-list';
 import { VideoRendition } from './video-rendition';
 import { VideoRenditionList } from './video-rendition-list';
 
-export const trackToLists = new Map();
+export const videoTrackToLists = new Map();
 
 export const VideoTrackKind = {
   alternative: 'alternative',
@@ -18,6 +18,7 @@ export class VideoTrack {
   kind?: string;
   label: string = '';
   language: string = '';
+  sourceBuffer?: SourceBuffer;
   #selected = false;
   #renditions = new VideoRenditionList();
 
@@ -51,7 +52,7 @@ export class VideoTrack {
 
     if (val !== true) return;
 
-    const videoTrackLists = trackToLists.get(this) ?? [];
+    const videoTrackLists = videoTrackToLists.get(this) ?? [];
     videoTrackLists.forEach((videoTrackList: VideoTrackList) => {
       // If other tracks are unselected, then a change event will be fired.
       let hasUnselected = false;

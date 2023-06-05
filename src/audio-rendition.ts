@@ -1,14 +1,11 @@
-import type { VideoRenditionList } from './video-rendition-list';
+import type { AudioRenditionList } from './audio-rendition-list';
 
 export const renditionToLists = new Map();
 
-export class VideoRendition {
+export class AudioRendition {
   src?: string;
   id?: string;
-  width?: number;
-  height?: number;
   bitrate?: number;
-  frameRate?: number;
   codec?: string;
   #selected = false;
 
@@ -22,17 +19,17 @@ export class VideoRendition {
 
     if (val !== true) return;
 
-    const videoRenditionLists = renditionToLists.get(this) ?? [];
-    videoRenditionLists.forEach((videoRenditionList: VideoRenditionList) => {
+    const audioRenditionLists = renditionToLists.get(this) ?? [];
+    audioRenditionLists.forEach((audioRenditionList: AudioRenditionList) => {
       // If other renditions are unselected, then a change event will be fired.
       let hasUnselected = false;
-      [...videoRenditionList].forEach((rendition) => {
+      [...audioRenditionList].forEach((rendition) => {
         if (rendition === this) return;
         rendition.selected = false;
         hasUnselected = true;
       });
       if (hasUnselected) {
-        videoRenditionList.dispatchEvent(
+        audioRenditionList.dispatchEvent(
           new CustomEvent('change', { detail: this })
         );
       }

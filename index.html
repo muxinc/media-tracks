@@ -4,20 +4,35 @@
     <title>Media Tracks</title>
   </head>
   <body>
+    <style>
+      video {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        max-width: 960px;
+      }
+    </style>
 
     <video
-      src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/low.mp4"
       crossorigin
       controls
       muted
-      preload="auto"
     ></video>
 
     <script type="module">
       // Importing this module polyfills the native HTMLMediaElement API.
       import './dist/index.js';
+      import 'https://cdn.jsdelivr.net/npm/hls.js@1';
 
       const myVideo = document.querySelector('video');
+      let videoSrc = 'https://playertest.longtailvideo.com/adaptive/elephants_dream_v4/index.m3u8';
+
+      if (Hls.isSupported()) {
+        var hls = new Hls();
+        hls.loadSource(videoSrc);
+        hls.attachMedia(myVideo);
+      } else if (myVideo.canPlayType('application/vnd.apple.mpegurl')) {
+        myVideo.src = videoSrc;
+      }
 
       myVideo.addEventListener('emptied', (e) => {
         console.log(e.type, performance.now());
@@ -68,10 +83,10 @@
         // console.log(Object.getPrototypeOf(myVideo.videoTracks[0]))
       });
 
-      // setTimeout(() => {
-      //   myVideo.removeAttribute('src');
-      //   myVideo.load();
-      // }, 5000);
+      setTimeout(() => {
+        myVideo.removeAttribute('src');
+        myVideo.load();
+      }, 5000);
 
     </script>
 

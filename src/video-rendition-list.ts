@@ -1,5 +1,5 @@
-import { VideoRendition, videoRenditionToLists } from './video-rendition';
-import { RenditionEvent } from './rendition-event';
+import { VideoRendition, videoRenditionToLists } from './video-rendition.js';
+import { RenditionEvent } from './rendition-event.js';
 
 export class VideoRenditionList extends EventTarget {
   #renditions: VideoRendition[] = [];

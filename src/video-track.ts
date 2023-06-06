@@ -1,6 +1,6 @@
-import type { VideoTrackList } from './video-track-list';
-import { VideoRendition } from './video-rendition';
-import { VideoRenditionList } from './video-rendition-list';
+import type { VideoTrackList } from './video-track-list.js';
+import { VideoRendition } from './video-rendition.js';
+import { VideoRenditionList } from './video-rendition-list.js';
 
 export const videoTrackToLists = new Map();
 

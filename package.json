@@ -1,27 +1,25 @@
 {
   "name": "media-tracks",
   "version": "0.1.0",
-  "description": "",
+  "description": "Polyfill audio and video tracks with renditions.",
+  "type": "module",
   "main": "index.js",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "esbuild src/index.ts --bundle --outdir=dist --servedir=.",
-    "build": "rm -rf dist && esbuild src/index.ts --target=es2019 --format=iife --bundle --minify --outdir=dist"
+    "dev": "esbuild src/*.ts --format=esm --outdir=dist --servedir=.",
+    "build": "rm -rf dist && esbuild src/*.ts --format=esm --outdir=dist",
+    "postbuild": "tsc"
   },
   "author": "@muxinc",
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.14.42",
-    "eslint": "^8.17.0",
-    "prettier": "^2.6.2",
-    "typescript": "^4.7.3"
-  },
-  "prettier": {
-    "tabWidth": 2,
-    "singleQuote": true,
-    "semi": true
+    "esbuild": "^0.17.19",
+    "eslint": "^8.42.0",
+    "typescript": "^5.1.3"
   },
   "eslintConfig": {
+    "root": true,
     "env": {
       "browser": true,
       "es6": true,

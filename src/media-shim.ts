@@ -1,7 +1,7 @@
-import { VideoTrack, VideoTrackKind } from './video-track';
-import { VideoTrackList } from './video-track-list';
-import { AudioTrack, AudioTrackKind } from './audio-track';
-import { AudioTrackList } from './audio-track-list';
+import { VideoTrack, VideoTrackKind } from './video-track.js';
+import { VideoTrackList } from './video-track-list.js';
+import { AudioTrack, AudioTrackKind } from './audio-track.js';
+import { AudioTrackList } from './audio-track-list.js';
 
 let mediaState = new WeakMap();
 
@@ -18,11 +18,10 @@ const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
 Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
   get() {
     // Safari does support `.videoTracks`
-    // const nativeVideoTracks = getNativeVideoTracks?.call(this);
-    // if (nativeVideoTracks) {
-    //   console.log(99);
-    //   return nativeVideoTracks;
-    // }
+    const nativeVideoTracks = getNativeVideoTracks?.call(this);
+    if (nativeVideoTracks) {
+      return nativeVideoTracks;
+    }
     return initVideoTrackList(this);
   },
 });
@@ -30,11 +29,10 @@ Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
 Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
   get() {
     // Safari does support `.audioTracks`
-    // const nativeAudioTracks = getNativeAudioTracks?.call(this);
-    // if (nativeAudioTracks) {
-    //   console.log(99);
-    //   return nativeAudioTracks;
-    // }
+    const nativeAudioTracks = getNativeAudioTracks?.call(this);
+    if (nativeAudioTracks) {
+      return nativeAudioTracks;
+    }
     return initAudioTrackList(this);
   },
 });

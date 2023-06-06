@@ -1,5 +1,5 @@
-import { VideoTrack, videoTrackToLists } from './video-track';
-import { TrackEvent } from './track-event';
+import { VideoTrack, videoTrackToLists } from './video-track.js';
+import { TrackEvent } from './track-event.js';
 
 // https://html.spec.whatwg.org/multipage/media.html#videotracklist
 export class VideoTrackList extends EventTarget {

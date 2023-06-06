@@ -1,4 +1,4 @@
-import type { AudioRenditionList } from './audio-rendition-list';
+import type { AudioRenditionList } from './audio-rendition-list.js';
 
 export const audioRenditionToLists = new Map();
 

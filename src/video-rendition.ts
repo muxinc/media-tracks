@@ -1,4 +1,4 @@
-import type { VideoRenditionList } from './video-rendition-list';
+import type { VideoRenditionList } from './video-rendition-list.js';
 
 export const videoRenditionToLists = new Map();
 

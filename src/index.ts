@@ -1,11 +1,11 @@
-import './media-shim';
+import './media-shim.js';
 
-export * from './video-track';
-export * from './video-track-list';
-export * from './video-rendition';
-export * from './video-rendition-list';
+export * from './video-track.js';
+export * from './video-track-list.js';
+export * from './video-rendition.js';
+export * from './video-rendition-list.js';
 
-export * from './audio-track';
-export * from './audio-track-list';
-export * from './audio-rendition';
-export * from './audio-rendition-list';
+export * from './audio-track.js';
+export * from './audio-track-list.js';
+export * from './audio-rendition.js';
+export * from './audio-rendition-list.js';

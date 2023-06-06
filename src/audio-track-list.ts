@@ -1,5 +1,5 @@
-import { AudioTrack, audioTrackToLists } from './audio-track';
-import { TrackEvent } from './track-event';
+import { AudioTrack, audioTrackToLists } from './audio-track.js';
+import { TrackEvent } from './track-event.js';
 
 // https://html.spec.whatwg.org/multipage/media.html#audiotracklist
 export class AudioTrackList extends EventTarget {

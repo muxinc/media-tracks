@@ -3,8 +3,10 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "noEmit": true,
-    "strict": true,
-    "allowJs": true
+    "rootDir": "src",
+    "outDir": "./dist/types",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "strict": true
   }
 }

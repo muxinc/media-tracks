@@ -1,5 +1,5 @@
-import { AudioRendition, audioRenditionToLists } from './audio-rendition';
-import { RenditionEvent } from './rendition-event';
+import { AudioRendition, audioRenditionToLists } from './audio-rendition.js';
+import { RenditionEvent } from './rendition-event.js';
 
 export class AudioRenditionList extends EventTarget {
   #renditions: AudioRendition[] = [];

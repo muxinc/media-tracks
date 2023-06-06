@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>Media Tracks</title>
-    <script src="./dist/index.js"></script>
   </head>
   <body>
 
@@ -11,10 +10,13 @@
       crossorigin
       controls
       muted
-      autoplay
+      preload="auto"
     ></video>
 
-    <script>
+    <script type="module">
+      // Importing this module polyfills the native HTMLMediaElement API.
+      import './dist/index.js';
+
       const myVideo = document.querySelector('video');
 
       myVideo.addEventListener('emptied', (e) => {
@@ -55,15 +57,22 @@
 
       myVideo.addEventListener('play', function(event) {
         console.log(event.type);
-        console.log(myVideo.videoTracks, myVideo.audioTracks)
-        console.log(myVideo.videoTracks[0], myVideo.audioTracks[0])
+
+        console.log(myVideo.videoTracks)
+        console.log(myVideo.audioTracks);
+
+        console.log(myVideo.videoTracks[0]);
+        console.log(myVideo.audioTracks[0]);
+
+        console.log(myVideo.videoTracks[0].renditions[0]);
         // console.log(Object.getPrototypeOf(myVideo.videoTracks[0]))
       });
 
-      setTimeout(() => {
-        myVideo.removeAttribute('src');
-        myVideo.load();
-      }, 5000);
+      // setTimeout(() => {
+      //   myVideo.removeAttribute('src');
+      //   myVideo.load();
+      // }, 5000);
+
     </script>
 
   </body>

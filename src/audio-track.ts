@@ -1,6 +1,6 @@
-import type { AudioTrackList } from './audio-track-list';
-import { AudioRendition } from './audio-rendition';
-import { AudioRenditionList } from './audio-rendition-list';
+import type { AudioTrackList } from './audio-track-list.js';
+import { AudioRendition } from './audio-rendition.js';
+import { AudioRenditionList } from './audio-rendition-list.js';
 
 export const audioTrackToLists = new Map();
 

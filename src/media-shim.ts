@@ -74,9 +74,12 @@ function initVideoTrackList(media: HTMLVideoElement) {
 
     let mainTrack: VideoTrack;
     const initMainTrack = () => {
+      // If MediaSource is used the tracks and renditions should be added externally.
+      // This logic is here to handle the simple progressive media case.
       if (
         ![...videoTrackList].find((t: VideoTrack) => t.kind === 'main') &&
-        media.readyState >= HTMLMediaElement.HAVE_METADATA
+        media.readyState >= HTMLMediaElement.HAVE_METADATA &&
+        !media.currentSrc.startsWith('blob:')
       ) {
         mainTrack = (media as any).addVideoTrack(VideoTrackKind.main);
         mainTrack.id = `${++state.trackIdCount}`;
@@ -95,7 +98,9 @@ function initVideoTrackList(media: HTMLVideoElement) {
     };
 
     const destroyTrack = () => {
-      videoTrackList.removeTrack(mainTrack);
+      if (mainTrack) {
+        videoTrackList.removeTrack(mainTrack);
+      }
     };
 
     initMainTrack();
@@ -117,9 +122,12 @@ function initAudioTrackList(media: HTMLMediaElement) {
 
     let mainTrack: AudioTrack;
     const initMainTrack = () => {
+      // If MediaSource is used the tracks and renditions should be added externally.
+      // This logic is here to handle the simple progressive media case.
       if (
         ![...audioTrackList].find((t: AudioTrack) => t.kind === 'main') &&
-        media.readyState >= HTMLMediaElement.HAVE_METADATA
+        media.readyState >= HTMLMediaElement.HAVE_METADATA &&
+        !media.currentSrc.startsWith('blob:')
       ) {
         mainTrack = (media as any).addAudioTrack(AudioTrackKind.main);
         mainTrack.id = `${++state.trackIdCount}`;
@@ -134,7 +142,9 @@ function initAudioTrackList(media: HTMLMediaElement) {
     };
 
     const destroyTrack = () => {
-      audioTrackList.removeTrack(mainTrack);
+      if (mainTrack) {
+        audioTrackList.removeTrack(mainTrack);
+      }
     };
 
     initMainTrack();

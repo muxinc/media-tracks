@@ -72,12 +72,9 @@
             rendition.enabled = true;
           }
         } else {
+          // Select 1 video rendition
           for (let rendition of myVideo.videoTracks[0].renditions) {
-            if (qualityselect.value == rendition.id) {
-              rendition.enabled = true;
-            } else {
-              rendition.enabled = false;
-            }
+            rendition.enabled = qualityselect.value == rendition.id;
           }
         }
       });

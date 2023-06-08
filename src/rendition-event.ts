@@ -1,4 +1,3 @@
-
 export class RenditionEvent extends Event {
   rendition: any;
 

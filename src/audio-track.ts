@@ -2,7 +2,8 @@ import type { AudioTrackList } from './audio-track-list.js';
 import { AudioRendition } from './audio-rendition.js';
 import { AudioRenditionList } from './audio-rendition-list.js';
 
-export const audioTrackToLists = new Map();
+export const audioTrackToList = new Map();
+const changeRequested = new Map();
 
 export const AudioTrackKind = {
   alternative: 'alternative',
@@ -22,12 +23,12 @@ export class AudioTrack {
   #enabled = false;
   #renditions = new AudioRenditionList();
 
-  addRendition(src: string, bitrate?: number, codec?: string) {
+  addRendition(src: string, codec?: string, bitrate?: number) {
     const rendition = new AudioRendition();
     rendition.src = src;
-    rendition.bitrate = bitrate;
     rendition.codec = codec;
-    this.#renditions.addRendition(rendition);
+    rendition.bitrate = bitrate;
+    this.#renditions.add(rendition);
     return rendition;
   }
 
@@ -47,9 +48,15 @@ export class AudioTrack {
     // and whenever one that was enabled is disabled, the user agent must queue a
     // media element task given the media element to fire an event named `change`
     // at the AudioTrackList object.
-    const audioTrackLists = audioTrackToLists.get(this) ?? [];
-    audioTrackLists.forEach((audioTrackList: AudioTrackList) => {
-      audioTrackList.dispatchEvent(new Event('change'));
+    const trackList = audioTrackToList.get(this);
+
+    // Prevent firing a track list `change` event multiple times per tick.
+    if (changeRequested.get(trackList)) return;
+    changeRequested.set(trackList, true);
+
+    queueMicrotask(() => {
+      changeRequested.delete(trackList);
+      trackList.dispatchEvent(new Event('change'));
     });
   }
 }

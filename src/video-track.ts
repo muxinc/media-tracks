@@ -2,7 +2,8 @@ import type { VideoTrackList } from './video-track-list.js';
 import { VideoRendition } from './video-rendition.js';
 import { VideoRenditionList } from './video-rendition-list.js';
 
-export const videoTrackToLists = new Map();
+export const videoTrackToList = new Map();
+const changeRequested = new Map();
 
 export const VideoTrackKind = {
   alternative: 'alternative',
@@ -26,9 +27,9 @@ export class VideoTrack {
     src: string,
     width?: number,
     height?: number,
-    frameRate?: number,
+    codec?: string,
     bitrate?: number,
-    codec?: string
+    frameRate?: number,
   ) {
     const rendition = new VideoRendition();
     rendition.src = src;
@@ -37,7 +38,7 @@ export class VideoTrack {
     rendition.frameRate = frameRate;
     rendition.bitrate = bitrate;
     rendition.codec = codec;
-    this.#renditions.addRendition(rendition);
+    this.#renditions.add(rendition);
     return rendition;
   }
 
@@ -55,18 +56,24 @@ export class VideoTrack {
 
     if (val !== true) return;
 
-    const videoTrackLists = videoTrackToLists.get(this) ?? [];
-    videoTrackLists.forEach((videoTrackList: VideoTrackList) => {
-      // If other tracks are unselected, then a change event will be fired.
-      let hasUnselected = false;
-      [...videoTrackList].forEach((track) => {
-        if (track === this) return;
-        track.selected = false;
-        hasUnselected = true;
+    const trackList: VideoTrackList = videoTrackToList.get(this);
+    // If other tracks are unselected, then a change event will be fired.
+    let hasUnselected = false;
+    for (let track of trackList) {
+      if (track === this) continue;
+      track.selected = false;
+      hasUnselected = true;
+    }
+    if (hasUnselected) {
+
+      // Prevent firing a track list `change` event multiple times per tick.
+      if (changeRequested.get(trackList)) return;
+      changeRequested.set(trackList, true);
+
+      queueMicrotask(() => {
+        changeRequested.delete(trackList);
+        trackList.dispatchEvent(new Event('change'));
       });
-      if (hasUnselected) {
-        videoTrackList.dispatchEvent(new Event('change'));
-      }
-    });
+    }
   }
 }

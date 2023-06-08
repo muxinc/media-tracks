@@ -2,8 +2,25 @@ import { VideoTrack, VideoTrackKind } from './video-track.js';
 import { VideoTrackList } from './video-track-list.js';
 import { AudioTrack, AudioTrackKind } from './audio-track.js';
 import { AudioTrackList } from './audio-track-list.js';
+import type { TrackEvent } from './track-event.js';
+import { VideoRenditionList } from './video-rendition-list.js';
+import { AudioRenditionList } from './audio-rendition-list.js';
 
-let mediaState = new WeakMap();
+const videoTrackLists = new WeakMap();
+const audioTrackLists = new WeakMap();
+
+const videoRenditionLists = new WeakMap();
+const audioRenditionLists = new WeakMap();
+
+// Safari supports native media tracks by default.
+//
+// Chrome and Firefox can enable support with a browser flag
+// but it does not work because the browser doesn't know about
+// the manifest and the available tracks.
+// The browser only knows about the media source (MSE).
+//
+// We also want to add / remove tracks manually which is not
+// possible in the native implementations afaik.
 
 const getNativeVideoTracks = Object.getOwnPropertyDescriptor(
   HTMLMediaElement.prototype,
@@ -15,142 +32,157 @@ const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
   'audioTracks'
 )?.get;
 
+// Patch even if the tracks are natively supported because when both native
+// HLS and MSE is supported (e.g. Safari desktop) there is no way to know up
+// front what is used.
+//
+// `.videoTracks` and `.audioTracks` is a singular instance that could be
+// accessed right after media element creation to add an event listener for
+// example.
+//
+// Keep the native track list in sync with our shim track list below.
+
 Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
-  get() {
-    // Safari does support `.videoTracks`
-    const nativeVideoTracks = getNativeVideoTracks?.call(this);
-    if (nativeVideoTracks) {
-      return nativeVideoTracks;
-    }
-    return initVideoTrackList(this);
-  },
+  get() { return initVideoTrackList(this); }
 });
 
 Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
-  get() {
-    // Safari does support `.audioTracks`
-    const nativeAudioTracks = getNativeAudioTracks?.call(this);
-    if (nativeAudioTracks) {
-      return nativeAudioTracks;
-    }
-    return initAudioTrackList(this);
-  },
+  get() { return initAudioTrackList(this); }
 });
 
 // There is video.addTextTrack so makes sense to add addVideoTrack and addAudioTrack
 
-Object.defineProperty(HTMLMediaElement.prototype, 'addVideoTrack', {
-  value: function (kind: string, label = '', language = '') {
-    let videoTrackList = initVideoTrackList(this);
-    const track = new VideoTrack();
-    track.kind = kind;
-    track.label = label;
-    track.language = language;
-    videoTrackList.addTrack(track);
-    return track;
-  },
-});
-
-Object.defineProperty(HTMLMediaElement.prototype, 'addAudioTrack', {
-  value: function (kind: string, label = '', language = '') {
-    let audioTrackList = initAudioTrackList(this);
-    const track = new AudioTrack();
-    track.kind = kind;
-    track.label = label;
-    track.language = language;
-    audioTrackList.addTrack(track);
-    return track;
-  },
-});
-
-function initVideoTrackList(media: HTMLVideoElement) {
-  let state = mediaState.get(media);
-  if (!state) mediaState.set(media, (state = { trackIdCount: 0 }));
-
-  let videoTrackList = state.videoTrackList;
-  if (!videoTrackList) {
-    videoTrackList = new VideoTrackList();
-    state.videoTrackList = videoTrackList;
-
-    let mainTrack: VideoTrack;
-    const initMainTrack = () => {
-      // If MediaSource is used the tracks and renditions should be added externally.
-      // This logic is here to handle the simple progressive media case.
-      if (
-        ![...videoTrackList].find((t: VideoTrack) => t.kind === 'main') &&
-        media.readyState >= HTMLMediaElement.HAVE_METADATA &&
-        !media.currentSrc.startsWith('blob:')
-      ) {
-        mainTrack = (media as any).addVideoTrack(VideoTrackKind.main);
-        mainTrack.id = `${++state.trackIdCount}`;
-
-        const rendition = mainTrack.addRendition(
-          media.currentSrc,
-          media.videoWidth,
-          media.videoHeight
-        );
-        rendition.selected = true;
-
-        if (![...videoTrackList].some(track => track.selected)) {
-          mainTrack.selected = true;
-        }
-      }
-    };
-
-    const destroyTrack = () => {
-      if (mainTrack) {
-        videoTrackList.removeTrack(mainTrack);
-      }
-    };
-
-    initMainTrack();
-    media.addEventListener('loadedmetadata', initMainTrack);
-    media.addEventListener('emptied', destroyTrack);
+declare global {
+  interface HTMLMediaElement {
+    addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
+    addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
   }
+}
 
-  return videoTrackList;
+HTMLMediaElement.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
+  let videoTrackList = initVideoTrackList(this);
+  const track = new VideoTrack();
+  track.kind = kind;
+  track.label = label;
+  track.language = language;
+  videoTrackList.add(track);
+  return track;
+}
+
+HTMLMediaElement.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
+  let audioTrackList = initAudioTrackList(this);
+  const track = new AudioTrack();
+  track.kind = kind;
+  track.label = label;
+  track.language = language;
+  audioTrackList.add(track);
+  return track;
+}
+
+function initVideoTrackList(media: HTMLMediaElement) {
+  let tracks = videoTrackLists.get(media);
+  if (!tracks) {
+    tracks = new VideoTrackList();
+    videoTrackLists.set(media, tracks);
+
+    // Sync native tracks to shim tracks
+    if (getNativeVideoTracks) {
+      const nativeTracks = getNativeVideoTracks.call(media);
+
+      for (const nativeTrack of nativeTracks) {
+        tracks.add(nativeTrack);
+      }
+
+      nativeTracks.addEventListener('change', () => {
+        tracks.dispatchEvent(new Event('change'));
+      });
+
+      nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
+        // Note: adding native track instances to the shim track list here.
+        // This works because the API is identical and change event is forwarded.
+        // If tracks were manually added prevent native tracks from being added.
+        if (![...tracks].some(t => t instanceof VideoTrack)) {
+          tracks.add(event.track);
+        }
+      });
+
+      nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
+        tracks.remove(event.track);
+      });
+    }
+  }
+  return tracks;
 }
 
 function initAudioTrackList(media: HTMLMediaElement) {
-  let state = mediaState.get(media);
-  if (!state) mediaState.set(media, (state = { trackIdCount: 0 }));
+  let tracks = audioTrackLists.get(media);
+  if (!tracks) {
+    tracks = new AudioTrackList();
+    audioTrackLists.set(media, tracks);
 
-  let audioTrackList = state.audioTrackList;
-  if (!audioTrackList) {
-    audioTrackList = new AudioTrackList();
-    state.audioTrackList = audioTrackList;
+    // Sync native tracks to shim tracks
+    if (getNativeAudioTracks) {
+      const nativeTracks = getNativeAudioTracks.call(media);
 
-    let mainTrack: AudioTrack;
-    const initMainTrack = () => {
-      // If MediaSource is used the tracks and renditions should be added externally.
-      // This logic is here to handle the simple progressive media case.
-      if (
-        ![...audioTrackList].find((t: AudioTrack) => t.kind === 'main') &&
-        media.readyState >= HTMLMediaElement.HAVE_METADATA &&
-        !media.currentSrc.startsWith('blob:')
-      ) {
-        mainTrack = (media as any).addAudioTrack(AudioTrackKind.main);
-        mainTrack.id = `${++state.trackIdCount}`;
+      for (let nativeTrack of nativeTracks) {
+        tracks.add(nativeTrack);
+      }
 
-        const rendition = mainTrack.addRendition(media.src);
-        rendition.selected = true;
+      nativeTracks.addEventListener('change', () => {
+        tracks.dispatchEvent(new Event('change'));
+      });
 
-        if (![...audioTrackList].some(track => track.selected)) {
-          mainTrack.enabled = true;
+      nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
+        // Note: adding native track instances to the shim track list here.
+        // This works because the API is identical and change event is forwarded.
+        // If tracks were manually added prevent native tracks from being added.
+        if (![...tracks].some(t => t instanceof AudioTrack)) {
+          tracks.add(event.track);
         }
-      }
-    };
+      });
 
-    const destroyTrack = () => {
-      if (mainTrack) {
-        audioTrackList.removeTrack(mainTrack);
-      }
-    };
-
-    initMainTrack();
-    media.addEventListener('loadedmetadata', initMainTrack);
-    media.addEventListener('emptied', destroyTrack);
+      nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
+        tracks.remove(event.track);
+      });
+    }
   }
+  return tracks;
+}
 
-  return audioTrackList;
+type VideoTrackType = typeof VideoTrack;
+type AudioTrackType = typeof AudioTrack;
+
+declare global {
+  var VideoTrack: VideoTrackType;
+  var AudioTrack: AudioTrackType;
+}
+
+if (globalThis.VideoTrack) {
+  Object.defineProperty(globalThis.VideoTrack.prototype, 'renditions', {
+    get() { return initVideoRenditionList(this); }
+  });
+}
+
+if (globalThis.AudioTrack) {
+  Object.defineProperty(globalThis.AudioTrack.prototype, 'renditions', {
+    get() { return initAudioRenditionList(this); }
+  });
+}
+
+function initVideoRenditionList(track: VideoTrack) {
+  let renditions = videoTrackLists.get(track);
+  if (!renditions) {
+    renditions = new VideoRenditionList();
+    videoTrackLists.set(track, renditions);
+  }
+  return renditions;
+}
+
+function initAudioRenditionList(track: AudioTrack) {
+  let renditions = audioTrackLists.get(track);
+  if (!renditions) {
+    renditions = new AudioRenditionList();
+    audioTrackLists.set(track, renditions);
+  }
+  return renditions;
 }

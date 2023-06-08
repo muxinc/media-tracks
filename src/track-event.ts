@@ -1,4 +1,3 @@
-
 export class TrackEvent extends Event {
   track: any;
 

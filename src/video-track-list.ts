@@ -1,4 +1,4 @@
-import { VideoTrack, videoTrackToLists } from './video-track.js';
+import { VideoTrack, videoTrackToList } from './video-track.js';
 import { TrackEvent } from './track-event.js';
 
 // https://html.spec.whatwg.org/multipage/media.html#videotracklist
@@ -16,9 +16,8 @@ export class VideoTrackList extends EventTarget {
     return this.#tracks.length;
   }
 
-  addTrack(track: VideoTrack) {
-    // can tracks belong to more track lists? todo add logic for that
-    videoTrackToLists.set(track, new Set([this]));
+  add(track: VideoTrack) {
+    videoTrackToList.set(track, this);
 
     const length = this.#tracks.push(track);
     const index = length - 1;
@@ -31,11 +30,18 @@ export class VideoTrackList extends EventTarget {
       });
     }
 
-    this.dispatchEvent(new TrackEvent('addtrack', { track }));
+    // The event is queued, this is in line with the native `addtrack` event.
+    // https://html.spec.whatwg.org/multipage/media.html#dom-media-addtexttrack
+    //
+    // This can be useful for setting additional props on the track object
+    // after having called addTrack().
+    queueMicrotask(() => {
+      this.dispatchEvent(new TrackEvent('addtrack', { track }));
+    });
   }
 
-  removeTrack(track: VideoTrack) {
-    videoTrackToLists.delete(track);
+  remove(track: VideoTrack) {
+    videoTrackToList.delete(track);
 
     this.#tracks.splice(this.#tracks.indexOf(track), 1);
     this.dispatchEvent(new TrackEvent('removetrack', { track }));

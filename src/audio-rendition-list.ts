@@ -1,4 +1,4 @@
-import { AudioRendition, audioRenditionToLists } from './audio-rendition.js';
+import { AudioRendition, audioRenditionToList } from './audio-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class AudioRenditionList extends EventTarget {
@@ -15,9 +15,8 @@ export class AudioRenditionList extends EventTarget {
     return this.#renditions.length;
   }
 
-  addRendition(rendition: AudioRendition) {
-    // can renditions belong to more rendition lists? todo add logic for that
-    audioRenditionToLists.set(rendition, new Set([this]));
+  add(rendition: AudioRendition) {
+    audioRenditionToList.set(rendition, this);
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
@@ -30,22 +29,24 @@ export class AudioRenditionList extends EventTarget {
       });
     }
 
-    this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
+    queueMicrotask(() => {
+      this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
+    });
   }
 
-  removeRendition(rendition: AudioRendition) {
-    audioRenditionToLists.delete(rendition);
+  remove(rendition: AudioRendition) {
+    audioRenditionToList.delete(rendition);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
     this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
   }
 
   getRenditionById(id: string): AudioRendition | null {
-    return this.#renditions.find((rendition) => rendition.id === id) ?? null;
+    return this.#renditions.find((rendition) => `${rendition.id}` === `${id}`) ?? null;
   }
 
-  get selectedIndex() {
-    return this.#renditions.findIndex((rendition) => rendition.selected);
+  get activeIndex() {
+    return this.#renditions.findIndex((rendition) => rendition.active);
   }
 
   get onaddrendition() {

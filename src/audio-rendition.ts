@@ -1,36 +1,64 @@
 import type { AudioRenditionList } from './audio-rendition-list.js';
 
-export const audioRenditionToLists = new Map();
+export const audioRenditionToList = new Map();
+const changeRequested = new Map();
 
+/**
+ * - There can only be 1 rendition active in a rendition list.
+ * - The consumer should use the `enabled` setter to select 1 or multiple
+ *   renditions that the engine is allowed to play.
+ * - The `active` setter should be used by the media engine implementation.
+ */
 export class AudioRendition {
   src?: string;
   id?: string;
   bitrate?: number;
   codec?: string;
-  #selected = false;
+  #enabled = false;
+  #active = false;
 
-  get selected(): boolean {
-    return this.#selected;
+  get enabled(): boolean {
+    return this.#enabled;
   }
 
-  set selected(val: boolean) {
-    if (this.#selected === val) return;
-    this.#selected = val;
+  set enabled(val: boolean) {
+    if (this.#enabled === val) return;
+    this.#enabled = val;
+
+    const renditionList: AudioRenditionList = audioRenditionToList.get(this);
+
+    // Prevent firing a rendition list `change` event multiple times per tick.
+    if (changeRequested.get(renditionList)) return;
+    changeRequested.set(renditionList, true);
+
+    queueMicrotask(() => {
+      changeRequested.delete(renditionList);
+      renditionList.dispatchEvent(new Event('change'));
+    });
+  }
+
+  get active(): boolean {
+    return this.#active;
+  }
+
+  set active(val: boolean) {
+    if (this.#active === val) return;
+    this.#active = val;
 
     if (val !== true) return;
 
-    const audioRenditionLists = audioRenditionToLists.get(this) ?? [];
-    audioRenditionLists.forEach((audioRenditionList: AudioRenditionList) => {
-      // If other renditions are unselected, then a change event will be fired.
-      let hasUnselected = false;
-      [...audioRenditionList].forEach((rendition) => {
-        if (rendition === this) return;
-        rendition.selected = false;
-        hasUnselected = true;
+    const renditionList: AudioRenditionList = audioRenditionToList.get(this);
+    // If other renditions are inactivated, then a renditionchange event will be fired.
+    let hasInactivated = false;
+    for (let rendition of renditionList) {
+      if (rendition === this) continue;
+      rendition.active = false;
+      hasInactivated = true;
+    }
+    if (hasInactivated) {
+      queueMicrotask(() => {
+        renditionList.dispatchEvent(new Event('renditionchange'));
       });
-      if (hasUnselected) {
-        audioRenditionList.dispatchEvent(new Event('change'));
-      }
-    });
+    }
   }
 }

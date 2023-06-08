@@ -1,5 +1,3 @@
-import './media-shim.js';
-
 export * from './video-track.js';
 export * from './video-track-list.js';
 export * from './video-rendition.js';

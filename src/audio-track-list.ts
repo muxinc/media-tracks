@@ -1,4 +1,4 @@
-import { AudioTrack, audioTrackToLists } from './audio-track.js';
+import { AudioTrack, audioTrackToList } from './audio-track.js';
 import { TrackEvent } from './track-event.js';
 
 // https://html.spec.whatwg.org/multipage/media.html#audiotracklist
@@ -16,9 +16,8 @@ export class AudioTrackList extends EventTarget {
     return this.#tracks.length;
   }
 
-  addTrack(track: AudioTrack) {
-    // can tracks belong to more track lists? todo add logic for that
-    audioTrackToLists.set(track, new Set([this]));
+  add(track: AudioTrack) {
+    audioTrackToList.set(track, this);
 
     const length = this.#tracks.push(track);
     const index = length - 1;
@@ -31,11 +30,18 @@ export class AudioTrackList extends EventTarget {
       });
     }
 
-    this.dispatchEvent(new TrackEvent('addtrack', { track }));
+    // The event is queued, this is in line with the native `addtrack` event.
+    // https://html.spec.whatwg.org/multipage/media.html#dom-media-addtexttrack
+    //
+    // This can be useful for setting additional props on the track object
+    // after having called addTrack().
+    queueMicrotask(() => {
+      this.dispatchEvent(new TrackEvent('addtrack', { track }));
+    });
   }
 
-  removeTrack(track: AudioTrack) {
-    audioTrackToLists.delete(track);
+  remove(track: AudioTrack) {
+    audioTrackToList.delete(track);
 
     this.#tracks.splice(this.#tracks.indexOf(track), 1);
     this.dispatchEvent(new TrackEvent('removetrack', { track }));

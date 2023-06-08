@@ -1,4 +1,4 @@
-import { VideoRendition, videoRenditionToLists } from './video-rendition.js';
+import { VideoRendition, videoRenditionToList } from './video-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class VideoRenditionList extends EventTarget {
@@ -15,9 +15,8 @@ export class VideoRenditionList extends EventTarget {
     return this.#renditions.length;
   }
 
-  addRendition(rendition: VideoRendition) {
-    // can renditions belong to more rendition lists? todo add logic for that
-    videoRenditionToLists.set(rendition, new Set([this]));
+  add(rendition: VideoRendition) {
+    videoRenditionToList.set(rendition, this);
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
@@ -30,22 +29,24 @@ export class VideoRenditionList extends EventTarget {
       });
     }
 
-    this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
+    queueMicrotask(() => {
+      this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
+    });
   }
 
-  removeRendition(rendition: VideoRendition) {
-    videoRenditionToLists.delete(rendition);
+  remove(rendition: VideoRendition) {
+    videoRenditionToList.delete(rendition);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
     this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
   }
 
   getRenditionById(id: string): VideoRendition | null {
-    return this.#renditions.find((rendition) => rendition.id === id) ?? null;
+    return this.#renditions.find((rendition) => `${rendition.id}` === `${id}`) ?? null;
   }
 
-  get selectedIndex() {
-    return this.#renditions.findIndex((rendition) => rendition.selected);
+  get activeIndex() {
+    return this.#renditions.findIndex((rendition) => rendition.active);
   }
 
   get onaddrendition() {

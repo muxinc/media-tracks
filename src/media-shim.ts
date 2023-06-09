@@ -9,6 +9,9 @@ import { AudioRenditionList } from './audio-rendition-list.js';
 const videoTrackLists = new WeakMap();
 const audioTrackLists = new WeakMap();
 
+const videoRenditionLists = new WeakMap();
+const audioRenditionLists = new WeakMap();
+
 // Safari supports native media tracks by default.
 //
 // Chrome and Firefox can enable support with a browser flag
@@ -167,19 +170,19 @@ if (globalThis.AudioTrack) {
 }
 
 function initVideoRenditionList(track: VideoTrack) {
-  let renditions = videoTrackLists.get(track);
+  let renditions = videoRenditionLists.get(track);
   if (!renditions) {
     renditions = new VideoRenditionList();
-    videoTrackLists.set(track, renditions);
+    videoRenditionLists.set(track, renditions);
   }
   return renditions;
 }
 
 function initAudioRenditionList(track: AudioTrack) {
-  let renditions = audioTrackLists.get(track);
+  let renditions = audioRenditionLists.get(track);
   if (!renditions) {
     renditions = new AudioRenditionList();
-    audioTrackLists.set(track, renditions);
+    audioRenditionLists.set(track, renditions);
   }
   return renditions;
 }

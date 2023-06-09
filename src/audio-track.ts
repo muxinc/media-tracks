@@ -1,4 +1,3 @@
-import type { AudioTrackList } from './audio-track-list.js';
 import { AudioRendition } from './audio-rendition.js';
 import { AudioRenditionList } from './audio-rendition-list.js';
 
@@ -17,8 +16,8 @@ export const AudioTrackKind = {
 export class AudioTrack {
   id?: string;
   kind?: string;
-  label: string = '';
-  language: string = '';
+  label = '';
+  language = '';
   sourceBuffer?: SourceBuffer;
   #enabled = false;
   #renditions = new AudioRenditionList();

@@ -52,7 +52,7 @@ export class VideoRendition {
     const renditionList: VideoRenditionList = videoRenditionToList.get(this);
     // If other renditions are inactivated, then a renditionchange event will be fired.
     let hasInactivated = false;
-    for (let rendition of renditionList) {
+    for (const rendition of renditionList) {
       if (rendition === this) continue;
       rendition.active = false;
       hasInactivated = true;

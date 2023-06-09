@@ -17,8 +17,8 @@ export const VideoTrackKind = {
 export class VideoTrack {
   id?: string;
   kind?: string;
-  label: string = '';
-  language: string = '';
+  label = '';
+  language = '';
   sourceBuffer?: SourceBuffer;
   #selected = false;
   #renditions = new VideoRenditionList();
@@ -59,7 +59,7 @@ export class VideoTrack {
     const trackList: VideoTrackList = videoTrackToList.get(this);
     // If other tracks are unselected, then a change event will be fired.
     let hasUnselected = false;
-    for (let track of trackList) {
+    for (const track of trackList) {
       if (track === this) continue;
       track.selected = false;
       hasUnselected = true;

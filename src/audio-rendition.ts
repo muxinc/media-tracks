@@ -50,7 +50,7 @@ export class AudioRendition {
     const renditionList: AudioRenditionList = audioRenditionToList.get(this);
     // If other renditions are inactivated, then a renditionchange event will be fired.
     let hasInactivated = false;
-    for (let rendition of renditionList) {
+    for (const rendition of renditionList) {
       if (rendition === this) continue;
       rendition.active = false;
       hasInactivated = true;

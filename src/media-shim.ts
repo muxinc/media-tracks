@@ -1,6 +1,6 @@
-import { VideoTrack, VideoTrackKind } from './video-track.js';
+import { VideoTrack } from './video-track.js';
 import { VideoTrackList } from './video-track-list.js';
-import { AudioTrack, AudioTrackKind } from './audio-track.js';
+import { AudioTrack } from './audio-track.js';
 import { AudioTrackList } from './audio-track-list.js';
 import type { TrackEvent } from './track-event.js';
 import { VideoRenditionList } from './video-rendition-list.js';
@@ -8,9 +8,6 @@ import { AudioRenditionList } from './audio-rendition-list.js';
 
 const videoTrackLists = new WeakMap();
 const audioTrackLists = new WeakMap();
-
-const videoRenditionLists = new WeakMap();
-const audioRenditionLists = new WeakMap();
 
 // Safari supports native media tracks by default.
 //
@@ -60,7 +57,7 @@ declare global {
 }
 
 HTMLMediaElement.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
-  let videoTrackList = initVideoTrackList(this);
+  const videoTrackList = initVideoTrackList(this);
   const track = new VideoTrack();
   track.kind = kind;
   track.label = label;
@@ -70,7 +67,7 @@ HTMLMediaElement.prototype.addVideoTrack = function (kind: string, label = '', l
 }
 
 HTMLMediaElement.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
-  let audioTrackList = initAudioTrackList(this);
+  const audioTrackList = initAudioTrackList(this);
   const track = new AudioTrack();
   track.kind = kind;
   track.label = label;
@@ -124,7 +121,7 @@ function initAudioTrackList(media: HTMLMediaElement) {
     if (getNativeAudioTracks) {
       const nativeTracks = getNativeAudioTracks.call(media);
 
-      for (let nativeTrack of nativeTracks) {
+      for (const nativeTrack of nativeTracks) {
         tracks.add(nativeTrack);
       }
 
@@ -153,8 +150,8 @@ type VideoTrackType = typeof VideoTrack;
 type AudioTrackType = typeof AudioTrack;
 
 declare global {
-  var VideoTrack: VideoTrackType;
-  var AudioTrack: AudioTrackType;
+  var VideoTrack: VideoTrackType; // eslint-disable-line
+  var AudioTrack: AudioTrackType; // eslint-disable-line
 }
 
 if (globalThis.VideoTrack) {

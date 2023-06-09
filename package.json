@@ -1,6 +1,6 @@
 {
   "name": "media-tracks",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Polyfill audio and video tracks with renditions.",
   "type": "module",
   "main": "dist/index.js",
@@ -30,9 +30,14 @@
   },
   "eslintConfig": {
     "root": true,
-    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
     "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint"],
+    "plugins": [
+      "@typescript-eslint"
+    ],
     "globals": {
       "globalThis": "writable"
     },

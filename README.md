@@ -31,21 +31,6 @@ declare global {
     }
 }
 
-class VideoRenditionList extends EventTarget {
-    [Symbol.iterator](): IterableIterator<VideoRendition>;
-    get length(): number;
-    add(rendition: VideoRendition): void;
-    remove(rendition: VideoRendition): void;
-    getRenditionById(id: string): VideoRendition | null;
-    get activeIndex(): number;
-    get onaddrendition(): (() => void) | undefined;
-    set onaddrendition(callback: (() => void) | undefined);
-    get onremoverendition(): (() => void) | undefined;
-    set onremoverendition(callback: (() => void) | undefined);
-    get onchange(): (() => void) | undefined;
-    set onchange(callback: (() => void) | undefined);
-}
-
 declare const VideoTrackKind: {
     alternative: string;
     captions: string;

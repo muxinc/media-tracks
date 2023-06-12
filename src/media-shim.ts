@@ -42,41 +42,51 @@ const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
 //
 // Keep the native track list in sync with our shim track list below.
 
-Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
-  get() { return initVideoTrackList(this); }
-});
-
-Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
-  get() { return initAudioTrackList(this); }
-});
-
-// There is video.addTextTrack so makes sense to add addVideoTrack and addAudioTrack
-
 declare global {
   interface HTMLMediaElement {
+    videoTracks: VideoTrackList;
+    audioTracks: AudioTrackList;
     addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
     addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
   }
 }
 
-HTMLMediaElement.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
-  const videoTrackList = initVideoTrackList(this);
-  const track = new VideoTrack();
-  track.kind = kind;
-  track.label = label;
-  track.language = language;
-  videoTrackList.add(track);
-  return track;
+if (!HTMLMediaElement.prototype.videoTracks) {
+  Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
+    get() { return initVideoTrackList(this); }
+  });
 }
 
-HTMLMediaElement.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
-  const audioTrackList = initAudioTrackList(this);
-  const track = new AudioTrack();
-  track.kind = kind;
-  track.label = label;
-  track.language = language;
-  audioTrackList.add(track);
-  return track;
+if (!HTMLMediaElement.prototype.audioTracks) {
+  Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
+    get() { return initAudioTrackList(this); }
+  });
+}
+
+// There is video.addTextTrack so makes sense to add addVideoTrack and addAudioTrack
+
+if (!HTMLMediaElement.prototype.addVideoTrack) {
+  HTMLMediaElement.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
+    const videoTrackList = initVideoTrackList(this);
+    const track = new VideoTrack();
+    track.kind = kind;
+    track.label = label;
+    track.language = language;
+    videoTrackList.add(track);
+    return track;
+  }
+}
+
+if (!HTMLMediaElement.prototype.addAudioTrack) {
+  HTMLMediaElement.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
+    const audioTrackList = initAudioTrackList(this);
+    const track = new AudioTrack();
+    track.kind = kind;
+    track.label = label;
+    track.language = language;
+    audioTrackList.add(track);
+    return track;
+  }
 }
 
 function initVideoTrackList(media: HTMLMediaElement) {
@@ -157,13 +167,13 @@ declare global {
   var AudioTrack: AudioTrackType; // eslint-disable-line
 }
 
-if (globalThis.VideoTrack) {
+if (globalThis.VideoTrack && !globalThis.VideoTrack.prototype.renditions) {
   Object.defineProperty(globalThis.VideoTrack.prototype, 'renditions', {
     get() { return initVideoRenditionList(this); }
   });
 }
 
-if (globalThis.AudioTrack) {
+if (globalThis.AudioTrack && !globalThis.AudioTrack.prototype.renditions) {
   Object.defineProperty(globalThis.AudioTrack.prototype, 'renditions', {
     get() { return initAudioRenditionList(this); }
   });

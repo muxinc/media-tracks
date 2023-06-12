@@ -10,7 +10,7 @@
     "./shim": "./dist/shim.js"
   },
   "files": [
-    "dist"
+    "dist/**/*"
   ],
   "scripts": {
     "lint": "npx eslint src/*.ts",

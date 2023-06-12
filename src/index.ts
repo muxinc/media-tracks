@@ -7,3 +7,6 @@ export * from './audio-track.js';
 export * from './audio-track-list.js';
 export * from './audio-rendition.js';
 export * from './audio-rendition-list.js';
+
+export * from './track-event.js';
+export * from './rendition-event.js';

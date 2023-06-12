@@ -5,6 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./shim": "./dist/shim.js"
+  },
   "files": [
     "dist"
   ],

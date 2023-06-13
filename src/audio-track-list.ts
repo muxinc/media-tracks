@@ -3,6 +3,7 @@ import { TrackEvent } from './track-event.js';
 
 // https://html.spec.whatwg.org/multipage/media.html#audiotracklist
 export class AudioTrackList extends EventTarget {
+  [index: number]: AudioTrack;
   #tracks: AudioTrack[] = [];
   #addTrackCallback?: () => void;
   #removeTrackCallback?: () => void;

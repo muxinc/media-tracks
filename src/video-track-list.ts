@@ -3,6 +3,7 @@ import { TrackEvent } from './track-event.js';
 
 // https://html.spec.whatwg.org/multipage/media.html#videotracklist
 export class VideoTrackList extends EventTarget {
+  [index: number]: VideoTrack;
   #tracks: VideoTrack[] = [];
   #addTrackCallback?: () => void;
   #removeTrackCallback?: () => void;

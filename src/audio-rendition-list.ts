@@ -2,6 +2,7 @@ import { AudioRendition, audioRenditionToList } from './audio-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class AudioRenditionList extends EventTarget {
+  [index: number]: AudioRendition;
   #renditions: AudioRendition[] = [];
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;

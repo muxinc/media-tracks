@@ -2,6 +2,7 @@ import { VideoRendition, videoRenditionToList } from './video-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class VideoRenditionList extends EventTarget {
+  [index: number]: VideoRendition;
   #renditions: VideoRendition[] = [];
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;

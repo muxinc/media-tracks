@@ -10,3 +10,4 @@ export * from './audio-rendition-list.js';
 
 export * from './track-event.js';
 export * from './rendition-event.js';
+export * from './mixin.js';

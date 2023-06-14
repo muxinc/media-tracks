@@ -21,13 +21,13 @@ declare global {
   }
 }
 
-if (globalThis.HTMLMediaElement) {
+interface MediaElementClass extends Partial<HTMLMediaElement> {
+  new(): Partial<HTMLMediaElement>
+}
 
-  const videoTrackLists = new WeakMap();
-  const audioTrackLists = new WeakMap();
+export function assignMediaTracks(MediaElementClass: MediaElementClass) {
 
-  const videoRenditionLists = new WeakMap();
-  const audioRenditionLists = new WeakMap();
+  if (!MediaElementClass?.prototype) return;
 
   // Safari supports native media tracks by default.
   //
@@ -40,14 +40,19 @@ if (globalThis.HTMLMediaElement) {
   // possible in the native implementations afaik.
 
   const getNativeVideoTracks = Object.getOwnPropertyDescriptor(
-    HTMLMediaElement.prototype,
+    MediaElementClass.prototype,
     'videoTracks'
   )?.get;
 
   const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
-    HTMLMediaElement.prototype,
+    MediaElementClass.prototype,
     'audioTracks'
   )?.get;
+
+  const isPolyfilled = getNativeVideoTracks &&
+    !`${getNativeVideoTracks}`.includes('[native code]');
+
+  if (isPolyfilled) return;
 
   // Patch even if the tracks are natively supported because when both native
   // HLS and MSE is supported (e.g. Safari desktop) there is no way to know up
@@ -59,22 +64,18 @@ if (globalThis.HTMLMediaElement) {
   //
   // Keep the native track list in sync with our shim track list below.
 
-  if (!HTMLMediaElement.prototype.videoTracks) {
-    Object.defineProperty(HTMLMediaElement.prototype, 'videoTracks', {
-      get() { return initVideoTrackList(this); }
-    });
-  }
+  Object.defineProperty(MediaElementClass.prototype, 'videoTracks', {
+    get() { return initVideoTrackList(this); }
+  });
 
-  if (!HTMLMediaElement.prototype.audioTracks) {
-    Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
-      get() { return initAudioTrackList(this); }
-    });
-  }
+  Object.defineProperty(MediaElementClass.prototype, 'audioTracks', {
+    get() { return initAudioTrackList(this); }
+  });
 
   // There is video.addTextTrack so makes sense to add addVideoTrack and addAudioTrack
 
-  if (!HTMLMediaElement.prototype.addVideoTrack) {
-    HTMLMediaElement.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
+  if (!('addVideoTrack' in MediaElementClass.prototype)) {
+    MediaElementClass.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
       const videoTrackList = initVideoTrackList(this);
       const track = new VideoTrack();
       track.kind = kind;
@@ -85,8 +86,8 @@ if (globalThis.HTMLMediaElement) {
     }
   }
 
-  if (!HTMLMediaElement.prototype.addAudioTrack) {
-    HTMLMediaElement.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
+  if (!('addAudioTrack' in MediaElementClass.prototype)) {
+    MediaElementClass.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
       const audioTrackList = initAudioTrackList(this);
       const track = new AudioTrack();
       track.kind = kind;
@@ -96,6 +97,12 @@ if (globalThis.HTMLMediaElement) {
       return track;
     }
   }
+
+  const videoTrackLists = new WeakMap();
+  const audioTrackLists = new WeakMap();
+
+  const videoRenditionLists = new WeakMap();
+  const audioRenditionLists = new WeakMap();
 
   const initVideoTrackList = (media: HTMLMediaElement) => {
     let tracks = videoTrackLists.get(media);
@@ -167,13 +174,13 @@ if (globalThis.HTMLMediaElement) {
     return tracks;
   }
 
-  if (globalThis.VideoTrack && !globalThis.VideoTrack.prototype.renditions) {
+  if (globalThis.VideoTrack && !('renditions' in globalThis.VideoTrack.prototype)) {
     Object.defineProperty(globalThis.VideoTrack.prototype, 'renditions', {
       get() { return initVideoRenditionList(this); }
     });
   }
 
-  if (globalThis.AudioTrack && !globalThis.AudioTrack.prototype.renditions) {
+  if (globalThis.AudioTrack && !('renditions' in globalThis.AudioTrack.prototype)) {
     Object.defineProperty(globalThis.AudioTrack.prototype, 'renditions', {
       get() { return initAudioRenditionList(this); }
     });

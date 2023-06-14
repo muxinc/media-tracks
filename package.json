@@ -7,7 +7,7 @@
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./shim": "./dist/shim.js"
+    "./polyfill": "./dist/polyfill.js"
   },
   "files": [
     "dist"

@@ -50,7 +50,7 @@ export class AudioTrack {
     const trackList = audioTrackToList.get(this);
 
     // Prevent firing a track list `change` event multiple times per tick.
-    if (changeRequested.get(trackList)) return;
+    if (!trackList || changeRequested.get(trackList)) return;
     changeRequested.set(trackList, true);
 
     queueMicrotask(() => {

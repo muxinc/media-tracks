@@ -28,7 +28,7 @@ export class AudioRendition {
     const renditionList: AudioRenditionList = audioRenditionToList.get(this);
 
     // Prevent firing a rendition list `change` event multiple times per tick.
-    if (changeRequested.get(renditionList)) return;
+    if (!renditionList || changeRequested.get(renditionList)) return;
     changeRequested.set(renditionList, true);
 
     queueMicrotask(() => {
@@ -47,14 +47,16 @@ export class AudioRendition {
 
     if (val !== true) return;
 
-    const renditionList: AudioRenditionList = audioRenditionToList.get(this);
+    const renditionList: AudioRenditionList = audioRenditionToList.get(this) ?? [];
     // If other renditions are inactivated, then a renditionchange event will be fired.
     let hasInactivated = false;
+
     for (const rendition of renditionList) {
       if (rendition === this) continue;
       rendition.active = false;
       hasInactivated = true;
     }
+
     if (hasInactivated) {
       queueMicrotask(() => {
         renditionList.dispatchEvent(new Event('renditionchange'));

@@ -56,16 +56,17 @@ export class VideoTrack {
 
     if (val !== true) return;
 
-    const trackList: VideoTrackList = videoTrackToList.get(this);
+    const trackList: VideoTrackList = videoTrackToList.get(this) ?? [];
     // If other tracks are unselected, then a change event will be fired.
     let hasUnselected = false;
+
     for (const track of trackList) {
       if (track === this) continue;
       track.selected = false;
       hasUnselected = true;
     }
-    if (hasUnselected) {
 
+    if (hasUnselected) {
       // Prevent firing a track list `change` event multiple times per tick.
       if (changeRequested.get(trackList)) return;
       changeRequested.set(trackList, true);

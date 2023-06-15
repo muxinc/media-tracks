@@ -1,3 +1,3 @@
-import { assignMediaTracks } from './mixin.js';
+import { MediaTracksMixin } from './mixin.js';
 
-assignMediaTracks(globalThis.HTMLMediaElement);
+MediaTracksMixin(globalThis.HTMLMediaElement);

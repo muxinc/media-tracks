@@ -21,13 +21,9 @@ declare global {
   }
 }
 
-interface MediaElementClass extends Partial<HTMLMediaElement> {
-  new(): Partial<HTMLMediaElement>
-}
-
-export function assignMediaTracks(MediaElementClass: MediaElementClass) {
-
-  if (!MediaElementClass?.prototype) return;
+export function MediaTracksMixin<T>(MediaElementClass: T): T {
+  // @ts-ignore
+  if (!MediaElementClass?.prototype) return MediaElementClass;
 
   // Safari supports native media tracks by default.
   //
@@ -40,11 +36,13 @@ export function assignMediaTracks(MediaElementClass: MediaElementClass) {
   // possible in the native implementations afaik.
 
   const getNativeVideoTracks = Object.getOwnPropertyDescriptor(
+    // @ts-ignore
     MediaElementClass.prototype,
     'videoTracks'
   )?.get;
 
   const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
+    // @ts-ignore
     MediaElementClass.prototype,
     'audioTracks'
   )?.get;
@@ -52,7 +50,7 @@ export function assignMediaTracks(MediaElementClass: MediaElementClass) {
   const isPolyfilled = getNativeVideoTracks &&
     !`${getNativeVideoTracks}`.includes('[native code]');
 
-  if (isPolyfilled) return;
+  if (isPolyfilled) return MediaElementClass;
 
   // Patch even if the tracks are natively supported because when both native
   // HLS and MSE is supported (e.g. Safari desktop) there is no way to know up
@@ -64,17 +62,21 @@ export function assignMediaTracks(MediaElementClass: MediaElementClass) {
   //
   // Keep the native track list in sync with our shim track list below.
 
+  // @ts-ignore
   Object.defineProperty(MediaElementClass.prototype, 'videoTracks', {
     get() { return initVideoTrackList(this); }
   });
 
+  // @ts-ignore
   Object.defineProperty(MediaElementClass.prototype, 'audioTracks', {
     get() { return initAudioTrackList(this); }
   });
 
   // There is video.addTextTrack so makes sense to add addVideoTrack and addAudioTrack
 
+  // @ts-ignore
   if (!('addVideoTrack' in MediaElementClass.prototype)) {
+    // @ts-ignore
     MediaElementClass.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
       const videoTrackList = initVideoTrackList(this);
       const track = new VideoTrack();
@@ -86,7 +88,9 @@ export function assignMediaTracks(MediaElementClass: MediaElementClass) {
     }
   }
 
+  // @ts-ignore
   if (!('addAudioTrack' in MediaElementClass.prototype)) {
+    // @ts-ignore
     MediaElementClass.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
       const audioTrackList = initAudioTrackList(this);
       const track = new AudioTrack();
@@ -203,4 +207,6 @@ export function assignMediaTracks(MediaElementClass: MediaElementClass) {
     }
     return renditions;
   }
+
+  return MediaElementClass;
 }

@@ -31,6 +31,58 @@ declare global {
     }
 }
 
+declare class AudioTrackList extends EventTarget {
+    [index: number]: AudioTrack;
+    [Symbol.iterator](): IterableIterator<AudioTrack>;
+    get length(): number;
+    add(track: AudioTrack): void;
+    remove(track: AudioTrack): void;
+    getTrackById(id: string): AudioTrack | null;
+    get onaddtrack(): (() => void) | undefined;
+    set onaddtrack(callback: (() => void) | undefined);
+    get onremovetrack(): (() => void) | undefined;
+    set onremovetrack(callback: (() => void) | undefined);
+    get onchange(): (() => void) | undefined;
+    set onchange(callback: (() => void) | undefined);
+}
+
+declare const AudioTrackKind: {
+    alternative: string;
+    descriptions: string;
+    main: string;
+    'main-desc': string;
+    translation: string;
+    commentary: string;
+};
+
+declare class AudioTrack {
+    id?: string;
+    kind?: string;
+    label: string;
+    language: string;
+    sourceBuffer?: SourceBuffer;
+    addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
+    get renditions(): AudioRenditionList;
+    get enabled(): boolean;
+    set enabled(val: boolean);
+}
+
+declare class VideoTrackList extends EventTarget {
+    [index: number]: VideoTrack;
+    [Symbol.iterator](): IterableIterator<VideoTrack>;
+    get length(): number;
+    add(track: VideoTrack): void;
+    remove(track: VideoTrack): void;
+    getTrackById(id: string): VideoTrack | null;
+    get selectedIndex(): number;
+    get onaddtrack(): (() => void) | undefined;
+    set onaddtrack(callback: (() => void) | undefined);
+    get onremovetrack(): (() => void) | undefined;
+    set onremovetrack(callback: (() => void) | undefined);
+    get onchange(): (() => void) | undefined;
+    set onchange(callback: (() => void) | undefined);
+}
+
 declare const VideoTrackKind: {
     alternative: string;
     captions: string;
@@ -53,6 +105,7 @@ declare class VideoTrack {
 }
 
 declare class VideoRenditionList extends EventTarget {
+    [index: number]: VideoRendition;
     [Symbol.iterator](): IterableIterator<VideoRendition>;
     get length(): number;
     add(rendition: VideoRendition): void;

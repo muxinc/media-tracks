@@ -3,6 +3,7 @@ import { VideoTrackList } from './video-track-list.js';
 import { AudioTrack } from './audio-track.js';
 import { AudioTrackList } from './audio-track-list.js';
 import type { TrackEvent } from './track-event.js';
+import type { RenditionEvent } from './rendition-event.js';
 import { VideoRenditionList } from './video-rendition-list.js';
 import { AudioRenditionList } from './audio-rendition-list.js';
 
@@ -64,7 +65,10 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
 
   // @ts-ignore
   Object.defineProperty(MediaElementClass.prototype, 'videoTracks', {
-    get() { return initVideoTrackList(this); }
+    get() {
+      initCurrentVideoRenditions(this);
+      return initVideoTrackList(this);
+    }
   });
 
   // @ts-ignore
@@ -205,6 +209,62 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
       renditions = new AudioRenditionList();
       audioRenditionLists.set(track, renditions);
     }
+    return renditions;
+  }
+
+  // @ts-ignore
+  if (!('videoRenditions' in MediaElementClass.prototype)) {
+    // @ts-ignore
+    Object.defineProperty(MediaElementClass.prototype, 'videoRenditions', {
+      get() { return initCurrentVideoRenditions(this); }
+    });
+  }
+
+  const initCurrentVideoRenditions = (media: HTMLMediaElement) => {
+    let renditions = videoRenditionLists.get(media);
+    if (renditions) return renditions;
+
+    renditions = new VideoRenditionList();
+    videoRenditionLists.set(media, renditions);
+
+    let currentTrack: VideoTrack;
+
+    const addRendition = (event: Event) => {
+      renditions.add((event as RenditionEvent).rendition);
+    };
+
+    const removeRendition = (event: Event) => {
+      renditions.remove((event as RenditionEvent).rendition);
+    };
+
+    const onVideoTrack = () => {
+      const videoTrack = media.videoTracks[media.videoTracks.selectedIndex ?? 0];
+
+      if (currentTrack !== videoTrack) {
+        currentTrack?.renditions.removeEventListener('addrendition', addRendition);
+        currentTrack?.renditions.removeEventListener('removerendition', removeRendition);
+
+        currentTrack = videoTrack;
+
+        for (const rendition of renditions) {
+          renditions.remove(rendition);
+        }
+
+        if (currentTrack) {
+          for (const rendition of currentTrack.renditions) {
+            renditions.add(rendition);
+          }
+
+          currentTrack.renditions.addEventListener('addrendition', addRendition);
+          currentTrack.renditions.addEventListener('removerendition', removeRendition);
+        }
+      }
+    };
+
+    media.videoTracks.addEventListener('addtrack', onVideoTrack);
+    media.videoTracks.addEventListener('change', onVideoTrack);
+    onVideoTrack();
+
     return renditions;
   }
 

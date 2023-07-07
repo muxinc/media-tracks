@@ -1,4 +1,4 @@
-import { AudioRendition, audioRenditionToList } from './audio-rendition.js';
+import { AudioRendition, audioRenditionToLists } from './audio-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class AudioRenditionList extends EventTarget {
@@ -7,6 +7,7 @@ export class AudioRenditionList extends EventTarget {
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;
   #changeCallback?: () => void;
+  #renditionChangeCallback?: () => void;
 
   [Symbol.iterator]() {
     return this.#renditions.values();
@@ -17,7 +18,10 @@ export class AudioRenditionList extends EventTarget {
   }
 
   add(rendition: AudioRendition) {
-    audioRenditionToList.set(rendition, this);
+    // A rendition can belong to multiple rendition lists.
+    const lists = audioRenditionToLists.get(rendition);
+    if (!lists) audioRenditionToLists.set(rendition, new Set([this]));
+    else lists.add(this);
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
@@ -36,7 +40,8 @@ export class AudioRenditionList extends EventTarget {
   }
 
   remove(rendition: AudioRendition) {
-    audioRenditionToList.delete(rendition);
+    const lists = audioRenditionToLists.get(rendition);
+    lists.delete(this);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
     this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
@@ -95,6 +100,21 @@ export class AudioRenditionList extends EventTarget {
     if (typeof callback == 'function') {
       this.#changeCallback = callback;
       this.addEventListener('change', callback);
+    }
+  }
+
+  get onrenditionchange() {
+    return this.#changeCallback;
+  }
+
+  set onrenditionchange(callback) {
+    if (this.#renditionChangeCallback) {
+      this.removeEventListener('renditionchange', this.#renditionChangeCallback);
+      this.#renditionChangeCallback = undefined;
+    }
+    if (typeof callback == 'function') {
+      this.#renditionChangeCallback = callback;
+      this.addEventListener('renditionchange', callback);
     }
   }
 }

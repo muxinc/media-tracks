@@ -7,6 +7,7 @@ export class AudioRenditionList extends EventTarget {
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;
   #changeCallback?: () => void;
+  #renditionChangeCallback?: () => void;
 
   [Symbol.iterator]() {
     return this.#renditions.values();
@@ -99,6 +100,21 @@ export class AudioRenditionList extends EventTarget {
     if (typeof callback == 'function') {
       this.#changeCallback = callback;
       this.addEventListener('change', callback);
+    }
+  }
+
+  get onrenditionchange() {
+    return this.#changeCallback;
+  }
+
+  set onrenditionchange(callback) {
+    if (this.#renditionChangeCallback) {
+      this.removeEventListener('renditionchange', this.#renditionChangeCallback);
+      this.#renditionChangeCallback = undefined;
+    }
+    if (typeof callback == 'function') {
+      this.#renditionChangeCallback = callback;
+      this.addEventListener('renditionchange', callback);
     }
   }
 }

@@ -118,6 +118,8 @@ declare class VideoRenditionList extends EventTarget {
     set onremoverendition(callback: (() => void) | undefined);
     get onchange(): (() => void) | undefined;
     set onchange(callback: (() => void) | undefined);
+    get onrenditionchange(): (() => void) | undefined;
+    set onrenditionchange(callback: (() => void) | undefined);
 }
 
 export declare class VideoRendition {
@@ -134,4 +136,3 @@ export declare class VideoRendition {
     set active(val: boolean);
 }
 ```
-

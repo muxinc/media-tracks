@@ -1,4 +1,4 @@
-import { VideoRendition, videoRenditionToList } from './video-rendition.js';
+import { VideoRendition, videoRenditionToLists } from './video-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class VideoRenditionList extends EventTarget {
@@ -17,7 +17,10 @@ export class VideoRenditionList extends EventTarget {
   }
 
   add(rendition: VideoRendition) {
-    videoRenditionToList.set(rendition, this);
+    // A rendition can belong to multiple rendition lists.
+    const lists = videoRenditionToLists.get(rendition);
+    if (!lists) videoRenditionToLists.set(rendition, new Set([this]));
+    else lists.add(this);
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
@@ -36,7 +39,8 @@ export class VideoRenditionList extends EventTarget {
   }
 
   remove(rendition: VideoRendition) {
-    videoRenditionToList.delete(rendition);
+    const lists = videoRenditionToLists.get(rendition);
+    lists.delete(this);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
     this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));

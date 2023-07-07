@@ -1,4 +1,4 @@
-import { AudioRendition, audioRenditionToList } from './audio-rendition.js';
+import { AudioRendition, audioRenditionToLists } from './audio-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 
 export class AudioRenditionList extends EventTarget {
@@ -17,7 +17,10 @@ export class AudioRenditionList extends EventTarget {
   }
 
   add(rendition: AudioRendition) {
-    audioRenditionToList.set(rendition, this);
+    // A rendition can belong to multiple rendition lists.
+    const lists = audioRenditionToLists.get(rendition);
+    if (!lists) audioRenditionToLists.set(rendition, new Set([this]));
+    else lists.add(this);
 
     const length = this.#renditions.push(rendition);
     const index = length - 1;
@@ -36,7 +39,8 @@ export class AudioRenditionList extends EventTarget {
   }
 
   remove(rendition: AudioRendition) {
-    audioRenditionToList.delete(rendition);
+    const lists = audioRenditionToLists.get(rendition);
+    lists.delete(this);
 
     this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
     this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));

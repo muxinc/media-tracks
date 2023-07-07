@@ -38,10 +38,10 @@ declare class AudioTrackList extends EventTarget {
     add(track: AudioTrack): void;
     remove(track: AudioTrack): void;
     getTrackById(id: string): AudioTrack | null;
-    get onaddtrack(): (() => void) | undefined;
-    set onaddtrack(callback: (() => void) | undefined);
-    get onremovetrack(): (() => void) | undefined;
-    set onremovetrack(callback: (() => void) | undefined);
+    get onaddtrack(): ((event?: { track: AudioTrack }) => void) | undefined;
+    set onaddtrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
+    get onremovetrack(): ((event?: { track: AudioTrack }) => void) | undefined;
+    set onremovetrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
     get onchange(): (() => void) | undefined;
     set onchange(callback: (() => void) | undefined);
 }
@@ -75,10 +75,10 @@ declare class VideoTrackList extends EventTarget {
     remove(track: VideoTrack): void;
     getTrackById(id: string): VideoTrack | null;
     get selectedIndex(): number;
-    get onaddtrack(): (() => void) | undefined;
-    set onaddtrack(callback: (() => void) | undefined);
-    get onremovetrack(): (() => void) | undefined;
-    set onremovetrack(callback: (() => void) | undefined);
+    get onaddtrack(): ((event?: { track: VideoTrack }) => void) | undefined;
+    set onaddtrack(callback: ((event?: { track: VideoTrack }) => void) | undefined);
+    get onremovetrack(): ((event?: { track: VideoTrack }) => void) | undefined;
+    set onremovetrack(callback: ((event?: { track: VideoTrack }) => void) | undefined);
     get onchange(): (() => void) | undefined;
     set onchange(callback: (() => void) | undefined);
 }
@@ -112,10 +112,10 @@ declare class VideoRenditionList extends EventTarget {
     remove(rendition: VideoRendition): void;
     getRenditionById(id: string): VideoRendition | null;
     get activeIndex(): number;
-    get onaddrendition(): (() => void) | undefined;
-    set onaddrendition(callback: (() => void) | undefined);
-    get onremoverendition(): (() => void) | undefined;
-    set onremoverendition(callback: (() => void) | undefined);
+    get onaddrendition(): ((event?: { track: VideoRendition }) => void) | undefined;
+    set onaddrendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);
+    get onremoverendition(): ((event?: { track: VideoRendition }) => void) | undefined;
+    set onremoverendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);
     get onchange(): (() => void) | undefined;
     set onchange(callback: (() => void) | undefined);
     get onrenditionchange(): (() => void) | undefined;

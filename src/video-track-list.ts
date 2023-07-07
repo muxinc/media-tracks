@@ -60,13 +60,14 @@ export class VideoTrackList extends EventTarget {
     return this.#addTrackCallback;
   }
 
-  set onaddtrack(callback) {
+  set onaddtrack(callback: ((event?: { track: VideoTrack }) => void) | undefined) {
     if (this.#addTrackCallback) {
       this.removeEventListener('addtrack', this.#addTrackCallback);
       this.#addTrackCallback = undefined;
     }
     if (typeof callback == 'function') {
       this.#addTrackCallback = callback;
+      // @ts-ignore
       this.addEventListener('addtrack', callback);
     }
   }
@@ -75,13 +76,14 @@ export class VideoTrackList extends EventTarget {
     return this.#removeTrackCallback;
   }
 
-  set onremovetrack(callback) {
+  set onremovetrack(callback: ((event?: { track: VideoTrack }) => void) | undefined) {
     if (this.#removeTrackCallback) {
       this.removeEventListener('removetrack', this.#removeTrackCallback);
       this.#removeTrackCallback = undefined;
     }
     if (typeof callback == 'function') {
       this.#removeTrackCallback = callback;
+      // @ts-ignore
       this.addEventListener('removetrack', callback);
     }
   }

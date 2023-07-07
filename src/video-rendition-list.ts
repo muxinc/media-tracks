@@ -59,13 +59,14 @@ export class VideoRenditionList extends EventTarget {
     return this.#addRenditionCallback;
   }
 
-  set onaddrendition(callback) {
+  set onaddrendition(callback: ((event?: { track: VideoRendition }) => void) | undefined) {
     if (this.#addRenditionCallback) {
       this.removeEventListener('addrendition', this.#addRenditionCallback);
       this.#addRenditionCallback = undefined;
     }
     if (typeof callback == 'function') {
       this.#addRenditionCallback = callback;
+      // @ts-ignore
       this.addEventListener('addrendition', callback);
     }
   }
@@ -74,7 +75,7 @@ export class VideoRenditionList extends EventTarget {
     return this.#removeRenditionCallback;
   }
 
-  set onremoverendition(callback) {
+  set onremoverendition(callback: ((event?: { track: VideoRendition }) => void) | undefined) {
     if (this.#removeRenditionCallback) {
       this.removeEventListener(
         'removerendition',
@@ -84,6 +85,7 @@ export class VideoRenditionList extends EventTarget {
     }
     if (typeof callback == 'function') {
       this.#removeRenditionCallback = callback;
+      // @ts-ignore
       this.addEventListener('removerendition', callback);
     }
   }

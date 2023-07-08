@@ -3,7 +3,7 @@ import { RenditionEvent } from './rendition-event.js';
 
 export class VideoRenditionList extends EventTarget {
   [index: number]: VideoRendition;
-  #renditions: VideoRendition[] = [];
+  #renditions: Set<VideoRendition> = new Set();
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;
   #changeCallback?: () => void;
@@ -14,14 +14,14 @@ export class VideoRenditionList extends EventTarget {
   }
 
   get length() {
-    return this.#renditions.length;
+    return this.#renditions.size;
   }
 
   add(rendition: VideoRendition) {
     videoRenditionToList.set(rendition, this);
 
-    const length = this.#renditions.push(rendition);
-    const index = length - 1;
+    this.#renditions.add(rendition);
+    const index = this.length - 1;
 
     if (!(index in VideoRenditionList.prototype)) {
       Object.defineProperty(VideoRenditionList.prototype, index, {
@@ -39,16 +39,20 @@ export class VideoRenditionList extends EventTarget {
   remove(rendition: VideoRendition) {
     videoRenditionToList.delete(rendition);
 
-    this.#renditions.splice(this.#renditions.indexOf(rendition), 1);
+    this.#renditions.delete(rendition);
     this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
   }
 
+  contains(rendition: VideoRendition) {
+    return this.#renditions.has(rendition);
+  }
+
   getRenditionById(id: string): VideoRendition | null {
-    return this.#renditions.find((rendition) => `${rendition.id}` === `${id}`) ?? null;
+    return [...this.#renditions].find((rendition) => `${rendition.id}` === `${id}`) ?? null;
   }
 
   get activeIndex() {
-    return this.#renditions.findIndex((rendition) => rendition.active);
+    return [...this.#renditions].findIndex((rendition) => rendition.active);
   }
 
   get onaddrendition() {

@@ -26,7 +26,7 @@ export class VideoRenditionList extends EventTarget {
     if (!(index in VideoRenditionList.prototype)) {
       Object.defineProperty(VideoRenditionList.prototype, index, {
         get() {
-          return this.#renditions[index];
+          return [...this.#renditions][index];
         },
       });
     }

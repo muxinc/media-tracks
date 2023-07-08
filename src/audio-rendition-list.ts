@@ -26,7 +26,7 @@ export class AudioRenditionList extends EventTarget {
     if (!(index in AudioRenditionList.prototype)) {
       Object.defineProperty(AudioRenditionList.prototype, index, {
         get() {
-          return this.#renditions[index];
+          return [...this.#renditions][index];
         },
       });
     }

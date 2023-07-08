@@ -4,7 +4,7 @@ import { TrackEvent } from './track-event.js';
 // https://html.spec.whatwg.org/multipage/media.html#audiotracklist
 export class AudioTrackList extends EventTarget {
   [index: number]: AudioTrack;
-  #tracks: AudioTrack[] = [];
+  #tracks: Set<AudioTrack> = new Set();
   #addTrackCallback?: () => void;
   #removeTrackCallback?: () => void;
   #changeCallback?: () => void;
@@ -14,19 +14,19 @@ export class AudioTrackList extends EventTarget {
   }
 
   get length() {
-    return this.#tracks.length;
+    return this.#tracks.size;
   }
 
   add(track: AudioTrack) {
     audioTrackToList.set(track, this);
 
-    const length = this.#tracks.push(track);
-    const index = length - 1;
+    this.#tracks.add(track);
+    const index = this.length - 1;
 
     if (!(index in AudioTrackList.prototype)) {
       Object.defineProperty(AudioTrackList.prototype, index, {
         get() {
-          return this.#tracks[index];
+          return [...this.#tracks][index];
         }
       });
     }
@@ -44,12 +44,16 @@ export class AudioTrackList extends EventTarget {
   remove(track: AudioTrack) {
     audioTrackToList.delete(track);
 
-    this.#tracks.splice(this.#tracks.indexOf(track), 1);
+    this.#tracks.delete(track);
     this.dispatchEvent(new TrackEvent('removetrack', { track }));
   }
 
+  contains(track: AudioTrack) {
+    return this.#tracks.has(track);
+  }
+
   getTrackById(id: string): AudioTrack | null {
-    return this.#tracks.find((track) => track.id === id) ?? null;
+    return [...this.#tracks].find((track) => track.id === id) ?? null;
   }
 
   get onaddtrack() {

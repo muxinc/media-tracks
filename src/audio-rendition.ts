@@ -1,6 +1,6 @@
 import type { AudioRenditionList } from './audio-rendition-list.js';
 
-export const audioRenditionToLists = new WeakMap();
+export const audioRenditionToList = new Map();
 const changeRequested = new Map();
 
 /**
@@ -25,17 +25,15 @@ export class AudioRendition {
     if (this.#enabled === val) return;
     this.#enabled = val;
 
-    const renditionLists: Set<AudioRenditionList> = audioRenditionToLists.get(this);
+    const renditionList: AudioRenditionList = audioRenditionToList.get(this);
+
     // Prevent firing a rendition list `change` event multiple times per tick.
-    if (!renditionLists || changeRequested.get(renditionLists)) return;
-    changeRequested.set(renditionLists, true);
+    if (!renditionList || changeRequested.get(renditionList)) return;
+    changeRequested.set(renditionList, true);
 
     queueMicrotask(() => {
-      changeRequested.delete(renditionLists);
-
-      for (const renditionList of renditionLists) {
-        renditionList.dispatchEvent(new Event('change'));
-      }
+      changeRequested.delete(renditionList);
+      renditionList.dispatchEvent(new Event('change'));
     });
   }
 
@@ -49,23 +47,20 @@ export class AudioRendition {
 
     if (val !== true) return;
 
-    const renditionLists: Set<AudioRenditionList> = audioRenditionToLists.get(this) ?? [];
+    const renditionList: AudioRenditionList = audioRenditionToList.get(this) ?? [];
+    // If other renditions are inactivated, then a renditionchange event will be fired.
+    let hasInactivated = false;
 
-    for (const renditionList of renditionLists) {
-      // If other renditions are inactivated, then a renditionchange event will be fired.
-      let hasInactivated = false;
+    for (const rendition of renditionList) {
+      if (rendition === this) continue;
+      rendition.active = false;
+      hasInactivated = true;
+    }
 
-      for (const rendition of renditionList) {
-        if (rendition === this) continue;
-        rendition.active = false;
-        hasInactivated = true;
-      }
-
-      if (hasInactivated) {
-        queueMicrotask(() => {
-          renditionList.dispatchEvent(new Event('renditionchange'));
-        });
-      }
+    if (hasInactivated) {
+      queueMicrotask(() => {
+        renditionList.dispatchEvent(new Event('renditionchange'));
+      });
     }
   }
 }

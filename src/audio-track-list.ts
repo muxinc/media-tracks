@@ -18,7 +18,9 @@ export class AudioTrackList extends EventTarget {
   }
 
   add(track: AudioTrack) {
-    audioTrackToList.set(track, this);
+    if (!audioTrackToList.has(track)) {
+      audioTrackToList.set(track, this);
+    }
 
     this.#tracks.add(track);
     const index = this.length - 1;

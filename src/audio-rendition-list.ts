@@ -18,7 +18,9 @@ export class AudioRenditionList extends EventTarget {
   }
 
   add(rendition: AudioRendition) {
-    audioRenditionToList.set(rendition, this);
+    if (!audioRenditionToList.has(rendition)) {
+      audioRenditionToList.set(rendition, this);
+    }
 
     this.#renditions.add(rendition);
     const index = this.length - 1;

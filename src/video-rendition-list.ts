@@ -18,7 +18,9 @@ export class VideoRenditionList extends EventTarget {
   }
 
   add(rendition: VideoRendition) {
-    videoRenditionToList.set(rendition, this);
+    if (!videoRenditionToList.has(rendition)) {
+      videoRenditionToList.set(rendition, this);
+    }
 
     this.#renditions.add(rendition);
     const index = this.length - 1;

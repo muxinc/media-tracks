@@ -18,7 +18,9 @@ export class VideoTrackList extends EventTarget {
   }
 
   add(track: VideoTrack) {
-    videoTrackToList.set(track, this);
+    if (!videoTrackToList.has(track)) {
+      videoTrackToList.set(track, this);
+    }
 
     this.#tracks.add(track);
     const index = this.length - 1;

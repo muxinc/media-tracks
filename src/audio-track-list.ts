@@ -45,7 +45,10 @@ export class AudioTrackList extends EventTarget {
     audioTrackToList.delete(track);
 
     this.#tracks.delete(track);
-    this.dispatchEvent(new TrackEvent('removetrack', { track }));
+
+    queueMicrotask(() => {
+      this.dispatchEvent(new TrackEvent('removetrack', { track }));
+    });
   }
 
   contains(track: AudioTrack) {

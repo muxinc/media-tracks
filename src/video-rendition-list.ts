@@ -40,7 +40,10 @@ export class VideoRenditionList extends EventTarget {
     videoRenditionToList.delete(rendition);
 
     this.#renditions.delete(rendition);
-    this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
+
+    queueMicrotask(() => {
+      this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
+    });
   }
 
   contains(rendition: VideoRendition) {

@@ -111,15 +111,12 @@ declare class VideoRenditionList extends EventTarget {
     add(rendition: VideoRendition): void;
     remove(rendition: VideoRendition): void;
     getRenditionById(id: string): VideoRendition | null;
-    get activeIndex(): number;
     get onaddrendition(): ((event?: { track: VideoRendition }) => void) | undefined;
     set onaddrendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);
     get onremoverendition(): ((event?: { track: VideoRendition }) => void) | undefined;
     set onremoverendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);
     get onchange(): (() => void) | undefined;
     set onchange(callback: (() => void) | undefined);
-    get onrenditionchange(): (() => void) | undefined;
-    set onrenditionchange(callback: (() => void) | undefined);
 }
 
 export declare class VideoRendition {
@@ -132,7 +129,5 @@ export declare class VideoRendition {
     codec?: string;
     get enabled(): boolean;
     set enabled(val: boolean);
-    get active(): boolean;
-    set active(val: boolean);
 }
 ```

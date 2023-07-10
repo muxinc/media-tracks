@@ -7,7 +7,6 @@ export class AudioRenditionList extends EventTarget {
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;
   #changeCallback?: () => void;
-  #renditionChangeCallback?: () => void;
 
   [Symbol.iterator]() {
     return this.#renditions.values();
@@ -54,10 +53,6 @@ export class AudioRenditionList extends EventTarget {
 
   getRenditionById(id: string): AudioRendition | null {
     return [...this.#renditions].find((rendition) => `${rendition.id}` === `${id}`) ?? null;
-  }
-
-  get activeIndex() {
-    return [...this.#renditions].findIndex((rendition) => rendition.active);
   }
 
   get onaddrendition() {
@@ -107,21 +102,6 @@ export class AudioRenditionList extends EventTarget {
     if (typeof callback == 'function') {
       this.#changeCallback = callback;
       this.addEventListener('change', callback);
-    }
-  }
-
-  get onrenditionchange() {
-    return this.#changeCallback;
-  }
-
-  set onrenditionchange(callback) {
-    if (this.#renditionChangeCallback) {
-      this.removeEventListener('renditionchange', this.#renditionChangeCallback);
-      this.#renditionChangeCallback = undefined;
-    }
-    if (typeof callback == 'function') {
-      this.#renditionChangeCallback = callback;
-      this.addEventListener('renditionchange', callback);
     }
   }
 }

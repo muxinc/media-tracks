@@ -5,6 +5,7 @@ import { AudioTrackList } from './audio-track-list.js';
 import type { TrackEvent } from './track-event.js';
 import { VideoRenditionList } from './video-rendition-list.js';
 import { AudioRenditionList } from './audio-rendition-list.js';
+import { getPrivate } from './utils.js';
 
 type VideoTrackType = typeof VideoTrack;
 type AudioTrackType = typeof AudioTrack;
@@ -18,6 +19,8 @@ declare global {
     audioTracks: AudioTrackList;
     addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
     addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
+    audioRenditions: AudioRenditionList;
+    videoRenditions: VideoRenditionList;
   }
 }
 
@@ -80,6 +83,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     MediaElementClass.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
       const videoTrackList = initVideoTrackList(this);
       const track = new VideoTrack();
+      getPrivate(track).media = this;
       track.kind = kind;
       track.label = label;
       track.language = language;
@@ -94,6 +98,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     MediaElementClass.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
       const audioTrackList = initAudioTrackList(this);
       const track = new AudioTrack();
+      getPrivate(track).media = this;
       track.kind = kind;
       track.label = label;
       track.language = language;
@@ -102,17 +107,11 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     }
   }
 
-  const videoTrackLists = new WeakMap();
-  const audioTrackLists = new WeakMap();
-
-  const videoRenditionLists = new WeakMap();
-  const audioRenditionLists = new WeakMap();
-
   const initVideoTrackList = (media: HTMLMediaElement) => {
-    let tracks = videoTrackLists.get(media);
+    let tracks = getPrivate(media).videoTracks;
     if (!tracks) {
       tracks = new VideoTrackList();
-      videoTrackLists.set(media, tracks);
+      getPrivate(media).videoTracks = tracks;
 
       // Sync native tracks to shim tracks
       if (getNativeVideoTracks) {
@@ -144,10 +143,10 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   }
 
   const initAudioTrackList = (media: HTMLMediaElement) => {
-    let tracks = audioTrackLists.get(media);
+    let tracks = getPrivate(media).audioTracks;
     if (!tracks) {
       tracks = new AudioTrackList();
-      audioTrackLists.set(media, tracks);
+      getPrivate(media).audioTracks = tracks;
 
       // Sync native tracks to shim tracks
       if (getNativeAudioTracks) {
@@ -178,32 +177,36 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     return tracks;
   }
 
-  if (globalThis.VideoTrack && !('renditions' in globalThis.VideoTrack.prototype)) {
-    Object.defineProperty(globalThis.VideoTrack.prototype, 'renditions', {
-      get() { return initVideoRenditionList(this); }
+  // @ts-ignore
+  if (!('videoRenditions' in MediaElementClass.prototype)) {
+    // @ts-ignore
+    Object.defineProperty(MediaElementClass.prototype, 'videoRenditions', {
+      get() { return initVideoRenditions(this); }
     });
   }
 
-  if (globalThis.AudioTrack && !('renditions' in globalThis.AudioTrack.prototype)) {
-    Object.defineProperty(globalThis.AudioTrack.prototype, 'renditions', {
-      get() { return initAudioRenditionList(this); }
-    });
-  }
-
-  const initVideoRenditionList = (track: VideoTrack) => {
-    let renditions = videoRenditionLists.get(track);
+  const initVideoRenditions = (media: HTMLMediaElement) => {
+    let renditions = getPrivate(media).videoRenditions;
     if (!renditions) {
       renditions = new VideoRenditionList();
-      videoRenditionLists.set(track, renditions);
+      getPrivate(media).videoRenditions = renditions;
     }
     return renditions;
   }
 
-  const initAudioRenditionList = (track: AudioTrack) => {
-    let renditions = audioRenditionLists.get(track);
+  // @ts-ignore
+  if (!('audioRenditions' in MediaElementClass.prototype)) {
+    // @ts-ignore
+    Object.defineProperty(MediaElementClass.prototype, 'audioRenditions', {
+      get() { return initAudioRenditions(this); }
+    });
+  }
+
+  const initAudioRenditions = (media: HTMLMediaElement) => {
+    let renditions = getPrivate(media).audioRenditions;
     if (!renditions) {
       renditions = new AudioRenditionList();
-      audioRenditionLists.set(track, renditions);
+      getPrivate(media).audioRenditions = renditions;
     }
     return renditions;
   }

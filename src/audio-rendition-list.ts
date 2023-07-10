@@ -1,5 +1,23 @@
-import { AudioRendition, audioRenditionToList } from './audio-rendition.js';
+import type { AudioRendition } from './audio-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
+import { getPrivate } from './utils.js';
+
+const changeRequested = new Map();
+
+export function enabledChanged(rendition: AudioRendition) {
+  const renditionList: AudioRenditionList = getPrivate(rendition).list;
+
+  // Prevent firing a rendition list `change` event multiple times per tick.
+  if (!renditionList || changeRequested.get(renditionList)) return;
+  changeRequested.set(renditionList, true);
+
+  queueMicrotask(() => {
+    changeRequested.delete(renditionList);
+
+    if (!getPrivate(rendition).track.enabled) return;
+    renditionList.dispatchEvent(new Event('change'));
+  });
+}
 
 export class AudioRenditionList extends EventTarget {
   [index: number]: AudioRendition;
@@ -9,50 +27,58 @@ export class AudioRenditionList extends EventTarget {
   #changeCallback?: () => void;
 
   [Symbol.iterator]() {
-    return this.#renditions.values();
+    return this.#currentRenditions.values();
   }
 
   get length() {
-    return this.#renditions.size;
+    return this.#currentRenditions.length;
+  }
+
+  get #currentRenditions() {
+    return [...this.#renditions].filter(rendition => {
+      return getPrivate(rendition).track.enabled;
+    });
   }
 
   add(rendition: AudioRendition) {
-    if (!audioRenditionToList.has(rendition)) {
-      audioRenditionToList.set(rendition, this);
+    if (!getPrivate(rendition).list) {
+      getPrivate(rendition).list = this;
     }
 
     this.#renditions.add(rendition);
-    const index = this.length - 1;
+    const index = this.#renditions.size - 1;
 
     if (!(index in AudioRenditionList.prototype)) {
       Object.defineProperty(AudioRenditionList.prototype, index, {
         get() {
-          return [...this.#renditions][index];
+          return this.#currentRenditions[index];
         },
       });
     }
 
     queueMicrotask(() => {
+      if (!getPrivate(rendition).track.enabled) return;
       this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
     });
   }
 
   remove(rendition: AudioRendition) {
-    audioRenditionToList.delete(rendition);
+    delete getPrivate(rendition).list;
 
     this.#renditions.delete(rendition);
 
     queueMicrotask(() => {
+      if (!getPrivate(rendition).track.enabled) return;
       this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
     });
   }
 
   contains(rendition: AudioRendition) {
-    return this.#renditions.has(rendition);
+    return this.#currentRenditions.includes(rendition);
   }
 
   getRenditionById(id: string): AudioRendition | null {
-    return [...this.#renditions].find((rendition) => `${rendition.id}` === `${id}`) ?? null;
+    return this.#currentRenditions.find((rendition) => `${rendition.id}` === `${id}`) ?? null;
   }
 
   get onaddrendition() {

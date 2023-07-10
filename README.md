@@ -28,6 +28,8 @@ declare global {
         videoTracks: VideoTrackList;
         addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
         addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
+        audioRenditions: AudioRenditionList;
+        videoRenditions: VideoRenditionList;
     }
 }
 

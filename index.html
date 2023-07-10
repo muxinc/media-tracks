@@ -46,34 +46,28 @@
       // Polyfilled media API's
       //
       // Add renditions to select element
-      // Listen for renditionchange events
+      // Listen for resize events
       // Enable / disable renditions from select
-      myVideo.videoTracks.addEventListener('addtrack', ({ track }) => {
 
-        track.renditions.addEventListener('addrendition', ({ rendition }) => {
-          qualityselect.append(new Option(
-            `${rendition.height}p`,
-            rendition.id,
-          ));
-        });
+      myVideo.videoRenditions.addEventListener('addrendition', ({ rendition }) => {
+        qualityselect.append(new Option(
+          `${rendition.height}p`,
+          rendition.id,
+        ));
+      });
 
-        track.renditions.addEventListener('renditionchange', () => {
-          for (let rendition of myVideo.videoTracks[0].renditions) {
-            if (rendition.active) {
-              qualityselected.textContent = `${rendition.height}p`;
-            }
-          }
-        });
+      myVideo.addEventListener('resize', () => {
+        qualityselected.textContent = `${Math.min(myVideo.videoWidth, myVideo.videoHeight)}p`;
       });
 
       qualityselect.addEventListener('change', () => {
         if (qualityselect.value == 'auto') {
-          for (let rendition of myVideo.videoTracks[0].renditions) {
+          for (let rendition of myVideo.videoRenditions) {
             rendition.enabled = true;
           }
         } else {
           // Select 1 video rendition
-          for (let rendition of myVideo.videoTracks[0].renditions) {
+          for (let rendition of myVideo.videoRenditions) {
             rendition.enabled = qualityselect.value == rendition.id;
           }
         }
@@ -145,7 +139,7 @@
         });
 
         hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
-          const rendition = myVideo.videoTracks[0].renditions.getRenditionById(data.level);
+          const rendition = myVideo.videoRenditions.getRenditionById(data.level);
           rendition.active = true;
         });
 
@@ -153,21 +147,19 @@
         // for demo purposes if all renditions are enabled it's auto selection
         // if 1 of the renditions is disabled we assume a selection was made
         // and lock it to the first rendition that is enabled.
-        myVideo.videoTracks.addEventListener('addtrack', ({ track }) => {
 
-          track.renditions.addEventListener('change', () => {
-            let level;
-            if ([...track.renditions].some(rendition => !rendition.enabled)) {
-              level = [...track.renditions].find(r => r.enabled).id;
-            } else {
-              level = -1;
-            }
+        myVideo.videoRenditions.addEventListener('change', () => {
+          let level;
+          if ([...myVideo.videoRenditions].some(rendition => !rendition.enabled)) {
+            level = [...myVideo.videoRenditions].find(r => r.enabled).id;
+          } else {
+            level = -1;
+          }
 
-            if (level != hls.currentLevel) {
-              console.log(`Changing level to ${level}`);
-              hls.nextLevel = level;
-            }
-          });
+          if (level != hls.currentLevel) {
+            console.log(`Changing level to ${level}`);
+            hls.nextLevel = level;
+          }
         });
 
         myVideo.audioTracks.addEventListener('change', () => {

@@ -1,5 +1,25 @@
-import { AudioTrack, audioTrackToList } from './audio-track.js';
+import type { AudioTrack } from './audio-track.js';
 import { TrackEvent } from './track-event.js';
+import { getPrivate } from './utils.js';
+
+const changeRequested = new Map();
+
+export function enabledChanged(track: AudioTrack) {
+  // Whenever an audio track in an AudioTrackList that was disabled is enabled,
+  // and whenever one that was enabled is disabled, the user agent must queue a
+  // media element task given the media element to fire an event named `change`
+  // at the AudioTrackList object.
+  const trackList = getPrivate(track).list;
+
+  // Prevent firing a track list `change` event multiple times per tick.
+  if (!trackList || changeRequested.get(trackList)) return;
+  changeRequested.set(trackList, true);
+
+  queueMicrotask(() => {
+    changeRequested.delete(trackList);
+    trackList.dispatchEvent(new Event('change'));
+  });
+}
 
 // https://html.spec.whatwg.org/multipage/media.html#audiotracklist
 export class AudioTrackList extends EventTarget {
@@ -18,8 +38,8 @@ export class AudioTrackList extends EventTarget {
   }
 
   add(track: AudioTrack) {
-    if (!audioTrackToList.has(track)) {
-      audioTrackToList.set(track, this);
+    if (!getPrivate(track).list) {
+      getPrivate(track).list = this;
     }
 
     this.#tracks.add(track);
@@ -44,7 +64,7 @@ export class AudioTrackList extends EventTarget {
   }
 
   remove(track: AudioTrack) {
-    audioTrackToList.delete(track);
+    delete getPrivate(track).list;
 
     this.#tracks.delete(track);
 

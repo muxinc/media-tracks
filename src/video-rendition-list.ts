@@ -1,5 +1,22 @@
-import { VideoRendition, videoRenditionToList } from './video-rendition.js';
+import { VideoRendition } from './video-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
+import { getPrivate } from './utils.js';
+
+const changeRequested = new Map();
+
+export function enabledChanged(rendition: VideoRendition) {
+  const renditionList: VideoRenditionList = getPrivate(rendition).list;
+  // Prevent firing a rendition list `change` event multiple times per tick.
+  if (!renditionList || changeRequested.get(renditionList)) return;
+  changeRequested.set(renditionList, true);
+
+  queueMicrotask(() => {
+    changeRequested.delete(renditionList);
+
+    if (!getPrivate(rendition).track.selected) return;
+    renditionList.dispatchEvent(new Event('change'));
+  });
+}
 
 export class VideoRenditionList extends EventTarget {
   [index: number]: VideoRendition;
@@ -9,50 +26,58 @@ export class VideoRenditionList extends EventTarget {
   #changeCallback?: () => void;
 
   [Symbol.iterator]() {
-    return this.#renditions.values();
+    return this.#currentRenditions.values();
   }
 
   get length() {
-    return this.#renditions.size;
+    return this.#currentRenditions.length;
+  }
+
+  get #currentRenditions() {
+    return [...this.#renditions].filter(rendition => {
+      return getPrivate(rendition).track.selected;
+    });
   }
 
   add(rendition: VideoRendition) {
-    if (!videoRenditionToList.has(rendition)) {
-      videoRenditionToList.set(rendition, this);
+    if (!getPrivate(rendition).list) {
+      getPrivate(rendition).list = this;
     }
 
     this.#renditions.add(rendition);
-    const index = this.length - 1;
+    const index = this.#renditions.size - 1;
 
     if (!(index in VideoRenditionList.prototype)) {
       Object.defineProperty(VideoRenditionList.prototype, index, {
         get() {
-          return [...this.#renditions][index];
+          return this.#currentRenditions[index];
         },
       });
     }
 
     queueMicrotask(() => {
+      if (!getPrivate(rendition).track.selected) return;
       this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
     });
   }
 
   remove(rendition: VideoRendition) {
-    videoRenditionToList.delete(rendition);
+    delete getPrivate(rendition).list;
 
     this.#renditions.delete(rendition);
 
     queueMicrotask(() => {
+      if (!getPrivate(rendition).track.selected) return;
       this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
     });
   }
 
   contains(rendition: VideoRendition) {
-    return this.#renditions.has(rendition);
+    return this.#currentRenditions.includes(rendition);
   }
 
   getRenditionById(id: string): VideoRendition | null {
-    return [...this.#renditions].find((rendition) => `${rendition.id}` === `${id}`) ?? null;
+    return this.#currentRenditions.find((rendition) => `${rendition.id}` === `${id}`) ?? null;
   }
 
   get onaddrendition() {

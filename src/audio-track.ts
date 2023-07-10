@@ -1,8 +1,6 @@
 import { AudioRendition } from './audio-rendition.js';
-import { AudioRenditionList } from './audio-rendition-list.js';
-
-export const audioTrackToList = new Map();
-const changeRequested = new Map();
+import { enabledChanged } from './audio-track-list.js';
+import { getPrivate } from './utils.js';
 
 export const AudioTrackKind = {
   alternative: 'alternative',
@@ -20,19 +18,15 @@ export class AudioTrack {
   language = '';
   sourceBuffer?: SourceBuffer;
   #enabled = false;
-  #renditions = new AudioRenditionList();
 
   addRendition(src: string, codec?: string, bitrate?: number) {
     const rendition = new AudioRendition();
+    getPrivate(rendition).track = this;
     rendition.src = src;
     rendition.codec = codec;
     rendition.bitrate = bitrate;
-    this.#renditions.add(rendition);
+    getPrivate(this).media.audioRenditions.add(rendition);
     return rendition;
-  }
-
-  get renditions() {
-    return this.#renditions;
   }
 
   get enabled(): boolean {
@@ -43,19 +37,6 @@ export class AudioTrack {
     if (this.#enabled === val) return;
     this.#enabled = val;
 
-    // Whenever an audio track in an AudioTrackList that was disabled is enabled,
-    // and whenever one that was enabled is disabled, the user agent must queue a
-    // media element task given the media element to fire an event named `change`
-    // at the AudioTrackList object.
-    const trackList = audioTrackToList.get(this);
-
-    // Prevent firing a track list `change` event multiple times per tick.
-    if (!trackList || changeRequested.get(trackList)) return;
-    changeRequested.set(trackList, true);
-
-    queueMicrotask(() => {
-      changeRequested.delete(trackList);
-      trackList.dispatchEvent(new Event('change'));
-    });
+    enabledChanged(this);
   }
 }

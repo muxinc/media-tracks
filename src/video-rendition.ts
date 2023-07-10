@@ -1,7 +1,4 @@
-import type { VideoRenditionList } from './video-rendition-list.js';
-
-export const videoRenditionToList = new Map();
-const changeRequested = new Map();
+import { enabledChanged } from './video-rendition-list.js';
 
 /**
  * - The consumer should use the `enabled` setter to select 1 or multiple
@@ -25,14 +22,6 @@ export class VideoRendition {
     if (this.#enabled === val) return;
     this.#enabled = val;
 
-    const renditionList = videoRenditionToList.get(this);
-    // Prevent firing a rendition list `change` event multiple times per tick.
-    if (!renditionList || changeRequested.get(renditionList)) return;
-    changeRequested.set(renditionList, true);
-
-    queueMicrotask(() => {
-      changeRequested.delete(renditionList);
-      renditionList.dispatchEvent(new Event('change'));
-    });
+    enabledChanged(this);
   }
 }

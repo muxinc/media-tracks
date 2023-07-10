@@ -1,5 +1,31 @@
-import { VideoTrack, videoTrackToList } from './video-track.js';
+import type { VideoTrack } from './video-track.js';
 import { TrackEvent } from './track-event.js';
+import { getPrivate } from './utils.js';
+
+const changeRequested = new Map();
+
+export function selectedChanged(selected: VideoTrack) {
+  const trackList: VideoTrackList = getPrivate(selected).list ?? [];
+  // If other tracks are unselected, then a change event will be fired.
+  let hasUnselected = false;
+
+  for (const track of trackList) {
+    if (track === selected) continue;
+    track.selected = false;
+    hasUnselected = true;
+  }
+
+  if (hasUnselected) {
+    // Prevent firing a track list `change` event multiple times per tick.
+    if (changeRequested.get(trackList)) return;
+    changeRequested.set(trackList, true);
+
+    queueMicrotask(() => {
+      changeRequested.delete(trackList);
+      trackList.dispatchEvent(new Event('change'));
+    });
+  }
+}
 
 // https://html.spec.whatwg.org/multipage/media.html#videotracklist
 export class VideoTrackList extends EventTarget {
@@ -18,8 +44,8 @@ export class VideoTrackList extends EventTarget {
   }
 
   add(track: VideoTrack) {
-    if (!videoTrackToList.has(track)) {
-      videoTrackToList.set(track, this);
+    if (!getPrivate(track).list) {
+      getPrivate(track).list = this;
     }
 
     this.#tracks.add(track);
@@ -44,7 +70,7 @@ export class VideoTrackList extends EventTarget {
   }
 
   remove(track: VideoTrack) {
-    videoTrackToList.delete(track);
+    delete getPrivate(track).list;
 
     this.#tracks.delete(track);
 

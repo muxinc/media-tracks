@@ -1,7 +1,4 @@
-import type { AudioRenditionList } from './audio-rendition-list.js';
-
-export const audioRenditionToList = new Map();
-const changeRequested = new Map();
+import { enabledChanged } from './audio-rendition-list.js';
 
 /**
  * - The consumer should use the `enabled` setter to select 1 or multiple
@@ -22,15 +19,6 @@ export class AudioRendition {
     if (this.#enabled === val) return;
     this.#enabled = val;
 
-    const renditionList: AudioRenditionList = audioRenditionToList.get(this);
-
-    // Prevent firing a rendition list `change` event multiple times per tick.
-    if (!renditionList || changeRequested.get(renditionList)) return;
-    changeRequested.set(renditionList, true);
-
-    queueMicrotask(() => {
-      changeRequested.delete(renditionList);
-      renditionList.dispatchEvent(new Event('change'));
-    });
+    enabledChanged(this);
   }
 }

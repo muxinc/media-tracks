@@ -24,12 +24,14 @@ and rendition (quality) selection menus.
 ```ts
 declare global {
     interface HTMLMediaElement {
-        audioTracks: AudioTrackList;
         videoTracks: VideoTrackList;
-        addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
+        audioTracks: AudioTrackList;
         addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
-        audioRenditions: AudioRenditionList;
+        addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
+        removeVideoTrack(track: VideoTrack): void;
+        removeAudioTrack(track: AudioTrack): void;
         videoRenditions: VideoRenditionList;
+        audioRenditions: AudioRenditionList;
     }
 }
 
@@ -37,8 +39,6 @@ declare class AudioTrackList extends EventTarget {
     [index: number]: AudioTrack;
     [Symbol.iterator](): IterableIterator<AudioTrack>;
     get length(): number;
-    add(track: AudioTrack): void;
-    remove(track: AudioTrack): void;
     getTrackById(id: string): AudioTrack | null;
     get onaddtrack(): ((event?: { track: AudioTrack }) => void) | undefined;
     set onaddtrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
@@ -64,7 +64,6 @@ declare class AudioTrack {
     language: string;
     sourceBuffer?: SourceBuffer;
     addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
-    get renditions(): AudioRenditionList;
     get enabled(): boolean;
     set enabled(val: boolean);
 }
@@ -73,8 +72,6 @@ declare class VideoTrackList extends EventTarget {
     [index: number]: VideoTrack;
     [Symbol.iterator](): IterableIterator<VideoTrack>;
     get length(): number;
-    add(track: VideoTrack): void;
-    remove(track: VideoTrack): void;
     getTrackById(id: string): VideoTrack | null;
     get selectedIndex(): number;
     get onaddtrack(): ((event?: { track: VideoTrack }) => void) | undefined;
@@ -101,7 +98,6 @@ declare class VideoTrack {
     language: string;
     sourceBuffer?: SourceBuffer;
     addRendition(src: string, width?: number, height?: number, codec?: string, bitrate?: number, frameRate?: number): VideoRendition;
-    get renditions(): VideoRenditionList;
     get selected(): boolean;
     set selected(val: boolean);
 }
@@ -110,8 +106,6 @@ declare class VideoRenditionList extends EventTarget {
     [index: number]: VideoRendition;
     [Symbol.iterator](): IterableIterator<VideoRendition>;
     get length(): number;
-    add(rendition: VideoRendition): void;
-    remove(rendition: VideoRendition): void;
     getRenditionById(id: string): VideoRendition | null;
     get onaddrendition(): ((event?: { track: VideoRendition }) => void) | undefined;
     set onaddrendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);

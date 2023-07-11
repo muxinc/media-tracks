@@ -1,5 +1,6 @@
 import { selectedChanged } from './video-track-list.js';
 import { VideoRendition } from './video-rendition.js';
+import { addRendition, removeRendition } from './video-rendition-list.js';
 import { getPrivate } from './utils.js';
 
 export const VideoTrackKind = {
@@ -35,8 +36,13 @@ export class VideoTrack {
     rendition.frameRate = frameRate;
     rendition.bitrate = bitrate;
     rendition.codec = codec;
-    getPrivate(this).media.videoRenditions.add(rendition);
+    addRendition(getPrivate(this).media.videoRenditions, rendition);
     return rendition;
+  }
+
+  removeRendition(rendition: VideoRendition) {
+    delete getPrivate(rendition).track;
+    removeRendition(rendition);
   }
 
   get selected(): boolean {

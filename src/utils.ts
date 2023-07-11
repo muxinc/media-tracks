@@ -1,4 +1,3 @@
-
 const privateProps = new WeakMap();
 
 export function getPrivate(instance: object) {

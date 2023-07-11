@@ -1,5 +1,6 @@
 import { AudioRendition } from './audio-rendition.js';
 import { enabledChanged } from './audio-track-list.js';
+import { addRendition, removeRendition } from './audio-rendition-list.js';
 import { getPrivate } from './utils.js';
 
 export const AudioTrackKind = {
@@ -25,8 +26,13 @@ export class AudioTrack {
     rendition.src = src;
     rendition.codec = codec;
     rendition.bitrate = bitrate;
-    getPrivate(this).media.audioRenditions.add(rendition);
+    addRendition(getPrivate(this).media.audioRenditions, rendition);
     return rendition;
+  }
+
+  removeRendition(rendition: AudioRendition) {
+    delete getPrivate(rendition).track;
+    removeRendition(rendition);
   }
 
   get enabled(): boolean {

@@ -1,7 +1,7 @@
 import { VideoTrack } from './video-track.js';
-import { VideoTrackList } from './video-track-list.js';
+import { VideoTrackList, addVideoTrack, removeVideoTrack } from './video-track-list.js';
 import { AudioTrack } from './audio-track.js';
-import { AudioTrackList } from './audio-track-list.js';
+import { AudioTrackList, addAudioTrack, removeAudioTrack } from './audio-track-list.js';
 import type { TrackEvent } from './track-event.js';
 import { VideoRenditionList } from './video-rendition-list.js';
 import { AudioRenditionList } from './audio-rendition-list.js';
@@ -17,10 +17,12 @@ declare global {
   interface HTMLMediaElement {
     videoTracks: VideoTrackList;
     audioTracks: AudioTrackList;
-    addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
     addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
-    audioRenditions: AudioRenditionList;
+    addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
+    removeVideoTrack(track: VideoTrack): void;
+    removeAudioTrack(track: AudioTrack): void;
     videoRenditions: VideoRenditionList;
+    audioRenditions: AudioRenditionList;
   }
 }
 
@@ -87,9 +89,15 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
       track.kind = kind;
       track.label = label;
       track.language = language;
-      videoTrackList.add(track);
+      addVideoTrack(videoTrackList, track);
       return track;
     }
+  }
+
+  // @ts-ignore
+  if (!('removeVideoTrack' in MediaElementClass.prototype)) {
+    // @ts-ignore
+    MediaElementClass.prototype.removeVideoTrack = removeVideoTrack;
   }
 
   // @ts-ignore
@@ -102,9 +110,15 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
       track.kind = kind;
       track.label = label;
       track.language = language;
-      audioTrackList.add(track);
+      addAudioTrack(audioTrackList, track);
       return track;
     }
+  }
+
+  // @ts-ignore
+  if (!('removeAudioTrack' in MediaElementClass.prototype)) {
+    // @ts-ignore
+    MediaElementClass.prototype.removeAudioTrack = removeAudioTrack;
   }
 
   const initVideoTrackList = (media: HTMLMediaElement) => {

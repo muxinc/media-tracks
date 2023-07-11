@@ -120,10 +120,6 @@
 
             videoRendition.id = id;
             videoRendition.enabled = true;
-
-            if (id == data.firstLevel) {
-              videoRendition.active = true;
-            }
           }
 
           for (let [id, a] of data.audioTracks.entries()) {
@@ -131,16 +127,11 @@
             const kind = a.default ? 'main' : 'alternative';
             const audioTrack = myVideo.addAudioTrack(kind, a.name, a.lang);
             audioTrack.id = id;
+
             if (a.default) {
               audioTrack.enabled = true;
             }
-
           }
-        });
-
-        hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
-          const rendition = myVideo.videoRenditions.getRenditionById(data.level);
-          rendition.active = true;
         });
 
         // hls.js doesn't support enabling multiple renditions easily
@@ -168,7 +159,6 @@
         });
 
         // end of internal media tracks / renditions implementation
-
       }
 
       myVideo.addEventListener('emptied', (e) => {

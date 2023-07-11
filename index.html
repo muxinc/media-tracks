@@ -63,12 +63,12 @@
       qualityselect.addEventListener('change', () => {
         if (qualityselect.value == 'auto') {
           for (let rendition of myVideo.videoRenditions) {
-            rendition.enabled = true;
+            rendition.selected = true;
           }
         } else {
           // Select 1 video rendition
           for (let rendition of myVideo.videoRenditions) {
-            rendition.enabled = qualityselect.value == rendition.id;
+            rendition.selected = qualityselect.value == rendition.id;
           }
         }
       });
@@ -119,7 +119,7 @@
             );
 
             videoRendition.id = id;
-            videoRendition.enabled = true;
+            videoRendition.selected = true;
           }
 
           for (let [id, a] of data.audioTracks.entries()) {
@@ -135,14 +135,14 @@
         });
 
         // hls.js doesn't support enabling multiple renditions easily
-        // for demo purposes if all renditions are enabled it's auto selection
-        // if 1 of the renditions is disabled we assume a selection was made
-        // and lock it to the first rendition that is enabled.
+        // for demo purposes if all renditions are selected it's auto selection
+        // if 1 of the renditions is deselected we assume a selection was made
+        // and lock it to the first rendition that is selected.
 
         myVideo.videoRenditions.addEventListener('change', () => {
           let level;
-          if ([...myVideo.videoRenditions].some(rendition => !rendition.enabled)) {
-            level = [...myVideo.videoRenditions].find(r => r.enabled).id;
+          if ([...myVideo.videoRenditions].some(rendition => !rendition.selected)) {
+            level = [...myVideo.videoRenditions].find(r => r.selected).id;
           } else {
             level = -1;
           }

@@ -4,7 +4,7 @@ import { getPrivate } from './utils.js';
 
 const changeRequested = new Map();
 
-export function enabledChanged(rendition: AudioRendition) {
+export function selectedChanged(rendition: AudioRendition) {
   const renditionList: AudioRenditionList = getPrivate(rendition).list;
 
   // Prevent firing a rendition list `change` event multiple times per tick.

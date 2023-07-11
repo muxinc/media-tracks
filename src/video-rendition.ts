@@ -1,7 +1,7 @@
-import { enabledChanged } from './video-rendition-list.js';
+import { selectedChanged } from './video-rendition-list.js';
 
 /**
- * - The consumer should use the `enabled` setter to select 1 or multiple
+ * - The consumer should use the `selected` setter to select 1 or multiple
  *   renditions that the engine is allowed to play.
  */
 export class VideoRendition {
@@ -12,16 +12,16 @@ export class VideoRendition {
   bitrate?: number;
   frameRate?: number;
   codec?: string;
-  #enabled = false;
+  #selected = false;
 
-  get enabled(): boolean {
-    return this.#enabled;
+  get selected(): boolean {
+    return this.#selected;
   }
 
-  set enabled(val: boolean) {
-    if (this.#enabled === val) return;
-    this.#enabled = val;
+  set selected(val: boolean) {
+    if (this.#selected === val) return;
+    this.#selected = val;
 
-    enabledChanged(this);
+    selectedChanged(this);
   }
 }

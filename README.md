@@ -33,49 +33,6 @@ declare global {
         videoRenditions: VideoRenditionList;
         audioRenditions: AudioRenditionList;
     }
-
-    interface AudioTrack {
-        addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
-        removeRendition(rendition: AudioRendition): void;
-    }
-
-    interface VideoTrack {
-        addRendition(src: string, width?: number, height?: number, codec?: string, bitrate?: number, frameRate?: number): VideoRendition;
-        removeRendition(rendition: VideoRendition): void;
-    }
-}
-
-declare class AudioTrackList extends EventTarget {
-    [index: number]: AudioTrack;
-    [Symbol.iterator](): IterableIterator<AudioTrack>;
-    get length(): number;
-    getTrackById(id: string): AudioTrack | null;
-    get onaddtrack(): ((event?: { track: AudioTrack }) => void) | undefined;
-    set onaddtrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
-    get onremovetrack(): ((event?: { track: AudioTrack }) => void) | undefined;
-    set onremovetrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
-    get onchange(): (() => void) | undefined;
-    set onchange(callback: (() => void) | undefined);
-}
-
-declare const AudioTrackKind: {
-    alternative: string;
-    descriptions: string;
-    main: string;
-    'main-desc': string;
-    translation: string;
-    commentary: string;
-};
-
-declare class AudioTrack {
-    id?: string;
-    kind?: string;
-    label: string;
-    language: string;
-    sourceBuffer?: SourceBuffer;
-    addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
-    get enabled(): boolean;
-    set enabled(val: boolean);
 }
 
 declare class VideoTrackList extends EventTarget {
@@ -108,6 +65,7 @@ declare class VideoTrack {
     language: string;
     sourceBuffer?: SourceBuffer;
     addRendition(src: string, width?: number, height?: number, codec?: string, bitrate?: number, frameRate?: number): VideoRendition;
+    removeRendition(rendition: AudioRendition): void;
     get selected(): boolean;
     set selected(val: boolean);
 }
@@ -117,15 +75,17 @@ declare class VideoRenditionList extends EventTarget {
     [Symbol.iterator](): IterableIterator<VideoRendition>;
     get length(): number;
     getRenditionById(id: string): VideoRendition | null;
-    get onaddrendition(): ((event?: { track: VideoRendition }) => void) | undefined;
-    set onaddrendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);
-    get onremoverendition(): ((event?: { track: VideoRendition }) => void) | undefined;
-    set onremoverendition(callback: ((event?: { track: VideoRendition }) => void) | undefined);
+    get selectedIndex(): number;
+    set selectedIndex(index: number);
+    get onaddrendition(): ((event?: { rendition: VideoRendition }) => void) | undefined;
+    set onaddrendition(callback: ((event?: { rendition: VideoRendition }) => void) | undefined);
+    get onremoverendition(): ((event?: { rendition: VideoRendition }) => void) | undefined;
+    set onremoverendition(callback: ((event?: { rendition: VideoRendition }) => void) | undefined);
     get onchange(): (() => void) | undefined;
     set onchange(callback: (() => void) | undefined);
 }
 
-export declare class VideoRendition {
+declare class VideoRendition {
     src?: string;
     id?: string;
     width?: number;
@@ -133,7 +93,65 @@ export declare class VideoRendition {
     bitrate?: number;
     frameRate?: number;
     codec?: string;
+    get selected(): boolean;
+    set selected(val: boolean);
+}
+
+declare class AudioTrackList extends EventTarget {
+    [index: number]: AudioTrack;
+    [Symbol.iterator](): IterableIterator<AudioTrack>;
+    get length(): number;
+    getTrackById(id: string): AudioTrack | null;
+    get onaddtrack(): ((event?: { track: AudioTrack }) => void) | undefined;
+    set onaddtrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
+    get onremovetrack(): ((event?: { track: AudioTrack }) => void) | undefined;
+    set onremovetrack(callback: ((event?: { track: AudioTrack }) => void) | undefined);
+    get onchange(): (() => void) | undefined;
+    set onchange(callback: (() => void) | undefined);
+}
+
+declare const AudioTrackKind: {
+    alternative: string;
+    descriptions: string;
+    main: string;
+    'main-desc': string;
+    translation: string;
+    commentary: string;
+};
+
+declare class AudioTrack {
+    id?: string;
+    kind?: string;
+    label: string;
+    language: string;
+    sourceBuffer?: SourceBuffer;
+    addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
+    removeRendition(rendition: AudioRendition): void;
     get enabled(): boolean;
     set enabled(val: boolean);
+}
+
+declare class AudioRenditionList extends EventTarget {
+    [index: number]: AudioRendition;
+    [Symbol.iterator](): IterableIterator<AudioRendition>;
+    get length(): number;
+    getRenditionById(id: string): AudioRendition | null;
+    get selectedIndex(): number;
+    set selectedIndex(index: number);
+    get onaddrendition(): ((event?: { rendition: VideoRendition }) => void) | undefined;
+    set onaddrendition(callback: ((event?: { rendition: VideoRendition }) => void) | undefined);
+    get onremoverendition(): ((event?: { rendition: VideoRendition }) => void) | undefined;
+    set onremoverendition(callback: ((event?: { rendition: VideoRendition }) => void) | undefined);
+    get onchange(): (() => void) | undefined;
+    set onchange(callback: (() => void) | undefined);
+}
+
+declare class AudioRendition {
+    src?: string;
+    id?: string;
+    bitrate?: number;
+    codec?: string;
+    get selected(): boolean;
+    set selected(val: boolean);
 }
 ```

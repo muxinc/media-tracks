@@ -96,7 +96,7 @@ export class AudioRenditionList extends EventTarget {
     return this.#addRenditionCallback;
   }
 
-  set onaddrendition(callback: ((event?: { track: AudioRendition }) => void) | undefined) {
+  set onaddrendition(callback: ((event?: { rendition: AudioRendition }) => void) | undefined) {
     if (this.#addRenditionCallback) {
       this.removeEventListener('addrendition', this.#addRenditionCallback);
       this.#addRenditionCallback = undefined;
@@ -112,7 +112,7 @@ export class AudioRenditionList extends EventTarget {
     return this.#removeRenditionCallback;
   }
 
-  set onremoverendition(callback: ((event?: { track: AudioRendition }) => void) | undefined) {
+  set onremoverendition(callback: ((event?: { rendition: AudioRendition }) => void) | undefined) {
     if (this.#removeRenditionCallback) {
       this.removeEventListener(
         'removerendition',

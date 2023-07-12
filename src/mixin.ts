@@ -128,12 +128,13 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
       tracks = new VideoTrackList();
       getPrivate(media).videoTracks = tracks;
 
-      // Sync native tracks to shim tracks
+      // Sync native tracks to shim track list
       if (getNativeVideoTracks) {
         const nativeTracks = getNativeVideoTracks.call(media);
 
         for (const nativeTrack of nativeTracks) {
-          tracks.add(nativeTrack);
+          getPrivate(nativeTrack).media = media;
+          addVideoTrack(tracks, nativeTrack);
         }
 
         nativeTracks.addEventListener('change', () => {
@@ -145,12 +146,13 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
           // This works because the API is identical and change event is forwarded.
           // If tracks were manually added prevent native tracks from being added.
           if (![...tracks].some(t => t instanceof VideoTrack)) {
-            tracks.add(event.track);
+            getPrivate(event.track).media = media;
+            addVideoTrack(tracks, event.track as VideoTrack);
           }
         });
 
         nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
-          tracks.remove(event.track);
+          removeVideoTrack(event.track  as VideoTrack);
         });
       }
     }
@@ -163,12 +165,13 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
       tracks = new AudioTrackList();
       getPrivate(media).audioTracks = tracks;
 
-      // Sync native tracks to shim tracks
+      // Sync native tracks to shim track list
       if (getNativeAudioTracks) {
         const nativeTracks = getNativeAudioTracks.call(media);
 
         for (const nativeTrack of nativeTracks) {
-          tracks.add(nativeTrack);
+          getPrivate(nativeTrack).media = media;
+          addAudioTrack(tracks, nativeTrack);
         }
 
         nativeTracks.addEventListener('change', () => {
@@ -180,12 +183,13 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
           // This works because the API is identical and change event is forwarded.
           // If tracks were manually added prevent native tracks from being added.
           if (![...tracks].some(t => t instanceof AudioTrack)) {
-            tracks.add(event.track);
+            getPrivate(event.track).media = media;
+            addAudioTrack(tracks, event.track as AudioTrack);
           }
         });
 
         nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
-          tracks.remove(event.track);
+          removeAudioTrack(event.track as AudioTrack);
         });
       }
     }

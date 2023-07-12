@@ -2,10 +2,13 @@ import { VideoTrack } from './video-track.js';
 import { VideoTrackList, addVideoTrack, removeVideoTrack } from './video-track-list.js';
 import { AudioTrack } from './audio-track.js';
 import { AudioTrackList, addAudioTrack, removeAudioTrack } from './audio-track-list.js';
-import type { TrackEvent } from './track-event.js';
 import { VideoRenditionList } from './video-rendition-list.js';
 import { AudioRenditionList } from './audio-rendition-list.js';
 import { getPrivate } from './utils.js';
+
+import type { TrackEvent } from './track-event.js';
+import type { AudioRendition } from './audio-rendition.js';
+import type { VideoRendition } from './video-rendition.js';
 
 type VideoTrackType = typeof VideoTrack;
 type AudioTrackType = typeof AudioTrack;
@@ -23,6 +26,16 @@ declare global {
     removeAudioTrack(track: AudioTrack): void;
     videoRenditions: VideoRenditionList;
     audioRenditions: AudioRenditionList;
+  }
+
+  interface AudioTrack {
+    addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
+    removeRendition(rendition: AudioRendition): void;
+  }
+
+  interface VideoTrack {
+    addRendition(src: string, width?: number, height?: number, codec?: string, bitrate?: number, frameRate?: number): VideoRendition;
+    removeRendition(rendition: VideoRendition): void;
   }
 }
 

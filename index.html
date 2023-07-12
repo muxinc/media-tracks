@@ -128,7 +128,8 @@
         // if 1 of the renditions is deselected we assume a selection was made
         // and lock it to the first rendition that is selected.
 
-        myVideo.videoRenditions.addEventListener('change', () => {
+        myVideo.videoRenditions.addEventListener('change', (event) => {
+          console.log(event);
 
           let level = myVideo.videoRenditions.selectedIndex;
 

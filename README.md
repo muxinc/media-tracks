@@ -33,6 +33,16 @@ declare global {
         videoRenditions: VideoRenditionList;
         audioRenditions: AudioRenditionList;
     }
+
+    interface AudioTrack {
+        addRendition(src: string, codec?: string, bitrate?: number): AudioRendition;
+        removeRendition(rendition: AudioRendition): void;
+    }
+
+    interface VideoTrack {
+        addRendition(src: string, width?: number, height?: number, codec?: string, bitrate?: number, frameRate?: number): VideoRendition;
+        removeRendition(rendition: VideoRendition): void;
+    }
 }
 
 declare class AudioTrackList extends EventTarget {

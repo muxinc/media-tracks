@@ -2,8 +2,6 @@ import type { AudioTrack } from './audio-track.js';
 import { TrackEvent } from './track-event.js';
 import { getPrivate } from './utils.js';
 
-const changeRequested = new Map();
-
 export function enabledChanged(track: AudioTrack) {
   // Whenever an audio track in an AudioTrackList that was disabled is enabled,
   // and whenever one that was enabled is disabled, the user agent must queue a
@@ -12,11 +10,11 @@ export function enabledChanged(track: AudioTrack) {
   const trackList = getPrivate(track).list;
 
   // Prevent firing a track list `change` event multiple times per tick.
-  if (!trackList || changeRequested.get(trackList)) return;
-  changeRequested.set(trackList, true);
+  if (!trackList || getPrivate(trackList).changeRequested) return;
+  getPrivate(trackList).changeRequested = true;
 
   queueMicrotask(() => {
-    changeRequested.delete(trackList);
+    delete getPrivate(trackList).changeRequested;
     trackList.dispatchEvent(new Event('change'));
   });
 }

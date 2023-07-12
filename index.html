@@ -61,16 +61,7 @@
       });
 
       qualityselect.addEventListener('change', () => {
-        if (qualityselect.value == 'auto') {
-          for (let rendition of myVideo.videoRenditions) {
-            rendition.selected = true;
-          }
-        } else {
-          // Select 1 video rendition
-          for (let rendition of myVideo.videoRenditions) {
-            rendition.selected = qualityselect.value == rendition.id;
-          }
-        }
+        myVideo.videoRenditions.selectedIndex = qualityselect.selectedIndex - 1;
       });
 
       // Audio tracks
@@ -103,7 +94,6 @@
 
         // We will handle this in custom-media-element, hls-video, mux-video, etc.
         hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-          // console.log(data);
 
           const videoTrack = myVideo.addVideoTrack('main');
           videoTrack.selected = true;
@@ -119,11 +109,10 @@
             );
 
             videoRendition.id = id;
-            videoRendition.selected = true;
           }
 
           for (let [id, a] of data.audioTracks.entries()) {
-            // console.log(a);
+
             const kind = a.default ? 'main' : 'alternative';
             const audioTrack = myVideo.addAudioTrack(kind, a.name, a.lang);
             audioTrack.id = id;
@@ -140,12 +129,8 @@
         // and lock it to the first rendition that is selected.
 
         myVideo.videoRenditions.addEventListener('change', () => {
-          let level;
-          if ([...myVideo.videoRenditions].some(rendition => !rendition.selected)) {
-            level = [...myVideo.videoRenditions].find(r => r.selected).id;
-          } else {
-            level = -1;
-          }
+
+          let level = myVideo.videoRenditions.selectedIndex;
 
           if (level != hls.currentLevel) {
             console.log(`Changing level to ${level}`);
@@ -154,8 +139,7 @@
         });
 
         myVideo.audioTracks.addEventListener('change', () => {
-          const selected = [...myVideo.audioTracks].find(t => t.enabled);
-          hls.audioTrack = selected.id;
+          hls.audioTrack = [...myVideo.audioTracks].find(t => t.enabled).id;
         });
 
         // end of internal media tracks / renditions implementation

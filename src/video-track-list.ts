@@ -2,8 +2,6 @@ import type { VideoTrack } from './video-track.js';
 import { TrackEvent } from './track-event.js';
 import { getPrivate } from './utils.js';
 
-const changeRequested = new Map();
-
 export function selectedChanged(selected: VideoTrack) {
   const trackList: VideoTrackList = getPrivate(selected).list ?? [];
   // If other tracks are unselected, then a change event will be fired.
@@ -17,11 +15,11 @@ export function selectedChanged(selected: VideoTrack) {
 
   if (hasUnselected) {
     // Prevent firing a track list `change` event multiple times per tick.
-    if (changeRequested.get(trackList)) return;
-    changeRequested.set(trackList, true);
+    if (getPrivate(trackList).changeRequested) return;
+    getPrivate(trackList).changeRequested = true;
 
     queueMicrotask(() => {
-      changeRequested.delete(trackList);
+      delete getPrivate(trackList).changeRequested;
       trackList.dispatchEvent(new Event('change'));
     });
   }

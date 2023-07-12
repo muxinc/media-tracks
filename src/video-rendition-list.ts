@@ -1,39 +1,42 @@
+import type { VideoTrack } from './video-track.js';
 import type { VideoRendition } from './video-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
 import { getPrivate } from './utils.js';
 
-export function addRendition(renditionList: VideoRenditionList, rendition: VideoRendition) {
+export function addRendition(track: VideoTrack, rendition: VideoRendition) {
+  const renditionList = getPrivate(track).media.videoRenditions;
+
   if (!getPrivate(rendition).list) {
     getPrivate(rendition).list = renditionList;
+    getPrivate(rendition).track = track;
   }
 
-  const { renditionSet } = getPrivate(renditionList);
-  renditionSet.add(rendition);
-  const index = renditionSet.size - 1;
+  const { collection } = getPrivate(renditionList);
+  collection.add(rendition);
+  const index = collection.size - 1;
 
   if (!(index in VideoRenditionList.prototype)) {
     Object.defineProperty(VideoRenditionList.prototype, index, {
-      get() {
-        return getCurrentRenditions(this)[index];
-      },
+      get() { return getCurrentRenditions(this)[index]; },
     });
   }
 
   queueMicrotask(() => {
-    if (!getPrivate(rendition).track.selected) return;
+    if (!track.selected) return;
+
     renditionList.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
   });
 }
 
 export function removeRendition(rendition: VideoRendition) {
   const renditionList: VideoRenditionList = getPrivate(rendition).list;
-  delete getPrivate(rendition).list;
-
-  const { renditionSet } = getPrivate(renditionList);
-  renditionSet.delete(rendition);
+  const collection: Set<VideoRendition> = getPrivate(renditionList).collection;
+  collection.delete(rendition);
 
   queueMicrotask(() => {
-    if (!getPrivate(rendition).track.selected) return;
+    const track: VideoTrack = getPrivate(rendition).track;
+    if (!track.selected) return;
+
     renditionList.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
   });
 }
@@ -48,13 +51,15 @@ export function selectedChanged(rendition: VideoRendition) {
   queueMicrotask(() => {
     delete getPrivate(renditionList).changeRequested;
 
-    if (!getPrivate(rendition).track.selected) return;
+    const track: VideoTrack = getPrivate(rendition).track;
+    if (!track.selected) return;
+
     renditionList.dispatchEvent(new Event('change'));
   });
 }
 
 function getCurrentRenditions(renditionList: VideoRenditionList): VideoRendition[] {
-  return [...getPrivate(renditionList).renditionSet].filter(rendition => {
+  return [...getPrivate(renditionList).collection].filter(rendition => {
     return getPrivate(rendition).track.selected;
   });
 }
@@ -67,7 +72,7 @@ export class VideoRenditionList extends EventTarget {
 
   constructor() {
     super();
-    getPrivate(this).renditionSet = new Set();
+    getPrivate(this).collection = new Set();
   }
 
   [Symbol.iterator]() {
@@ -114,10 +119,7 @@ export class VideoRenditionList extends EventTarget {
 
   set onremoverendition(callback: ((event?: { rendition: VideoRendition }) => void) | undefined) {
     if (this.#removeRenditionCallback) {
-      this.removeEventListener(
-        'removerendition',
-        this.#removeRenditionCallback
-      );
+      this.removeEventListener('removerendition', this.#removeRenditionCallback);
       this.#removeRenditionCallback = undefined;
     }
     if (typeof callback == 'function') {

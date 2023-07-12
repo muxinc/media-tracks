@@ -2,6 +2,44 @@ import type { VideoTrack } from './video-track.js';
 import { TrackEvent } from './track-event.js';
 import { getPrivate } from './utils.js';
 
+export function addVideoTrack(media: HTMLMediaElement, track: VideoTrack) {
+  const trackList = media.videoTracks;
+
+  if (!getPrivate(track).list) {
+    getPrivate(track).list = trackList;
+    getPrivate(track).media = media;
+  }
+
+  const { collection } = getPrivate(trackList);
+  collection.add(track);
+  const index = collection.size - 1;
+
+  if (!(index in VideoTrackList.prototype)) {
+    Object.defineProperty(VideoTrackList.prototype, index, {
+      get() { return [...collection][index]; }
+    });
+  }
+
+  // The event is queued, this is in line with the native `addtrack` event.
+  // https://html.spec.whatwg.org/multipage/media.html#dom-media-addtexttrack
+  //
+  // This can be useful for setting additional props on the track object
+  // after having called addTrack().
+  queueMicrotask(() => {
+    trackList.dispatchEvent(new TrackEvent('addtrack', { track }));
+  });
+}
+
+export function removeVideoTrack(track: VideoTrack) {
+  const trackList: VideoTrackList = getPrivate(track).list;
+  const collection: Set<VideoTrack> = getPrivate(trackList).collection;
+  collection.delete(track);
+
+  queueMicrotask(() => {
+    trackList.dispatchEvent(new TrackEvent('removetrack', { track }));
+  });
+}
+
 export function selectedChanged(selected: VideoTrack) {
   const trackList: VideoTrackList = getPrivate(selected).list ?? [];
   // If other tracks are unselected, then a change event will be fired.
@@ -25,45 +63,6 @@ export function selectedChanged(selected: VideoTrack) {
   }
 }
 
-export function addVideoTrack(trackList: VideoTrackList, track: VideoTrack) {
-  if (!getPrivate(track).list) {
-    getPrivate(track).list = trackList;
-  }
-
-  const { renditionSet } = getPrivate(trackList);
-  renditionSet.add(track);
-  const index = renditionSet.size - 1;
-
-  if (!(index in VideoTrackList.prototype)) {
-    Object.defineProperty(VideoTrackList.prototype, index, {
-      get() {
-        return [...renditionSet][index];
-      }
-    });
-  }
-
-  // The event is queued, this is in line with the native `addtrack` event.
-  // https://html.spec.whatwg.org/multipage/media.html#dom-media-addtexttrack
-  //
-  // This can be useful for setting additional props on the track object
-  // after having called addTrack().
-  queueMicrotask(() => {
-    trackList.dispatchEvent(new TrackEvent('addtrack', { track }));
-  });
-}
-
-export function removeVideoTrack(track: VideoTrack) {
-  const trackList: VideoTrackList = getPrivate(track).list;
-  delete getPrivate(track).list;
-
-  const renditionSet: Set<VideoTrack> = getPrivate(trackList).renditionSet;
-  renditionSet.delete(track);
-
-  queueMicrotask(() => {
-    trackList.dispatchEvent(new TrackEvent('removetrack', { track }));
-  });
-}
-
 // https://html.spec.whatwg.org/multipage/media.html#videotracklist
 export class VideoTrackList extends EventTarget {
   [index: number]: VideoTrack;
@@ -73,11 +72,11 @@ export class VideoTrackList extends EventTarget {
 
   constructor() {
     super();
-    getPrivate(this).renditionSet = new Set();
+    getPrivate(this).collection = new Set();
   }
 
   get #tracks() {
-    return getPrivate(this).renditionSet;
+    return getPrivate(this).collection;
   }
 
   [Symbol.iterator]() {

@@ -84,13 +84,11 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   if (!('addVideoTrack' in MediaElementClass.prototype)) {
     // @ts-ignore
     MediaElementClass.prototype.addVideoTrack = function (kind: string, label = '', language = '') {
-      const videoTrackList = initVideoTrackList(this);
       const track = new VideoTrack();
-      getPrivate(track).media = this;
       track.kind = kind;
       track.label = label;
       track.language = language;
-      addVideoTrack(videoTrackList, track);
+      addVideoTrack(this, track);
       return track;
     }
   }
@@ -105,13 +103,11 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   if (!('addAudioTrack' in MediaElementClass.prototype)) {
     // @ts-ignore
     MediaElementClass.prototype.addAudioTrack = function (kind: string, label = '', language = '') {
-      const audioTrackList = initAudioTrackList(this);
       const track = new AudioTrack();
-      getPrivate(track).media = this;
       track.kind = kind;
       track.label = label;
       track.language = language;
-      addAudioTrack(audioTrackList, track);
+      addAudioTrack(this, track);
       return track;
     }
   }
@@ -123,7 +119,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   }
 
   const initVideoTrackList = (media: HTMLMediaElement) => {
-    let tracks = getPrivate(media).videoTracks;
+    let tracks: VideoTrackList = getPrivate(media).videoTracks;
     if (!tracks) {
       tracks = new VideoTrackList();
       getPrivate(media).videoTracks = tracks;
@@ -133,8 +129,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
         const nativeTracks = getNativeVideoTracks.call(media);
 
         for (const nativeTrack of nativeTracks) {
-          getPrivate(nativeTrack).media = media;
-          addVideoTrack(tracks, nativeTrack);
+          addVideoTrack(media, nativeTrack);
         }
 
         nativeTracks.addEventListener('change', () => {
@@ -146,8 +141,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
           // This works because the API is identical and change event is forwarded.
           // If tracks were manually added prevent native tracks from being added.
           if (![...tracks].some(t => t instanceof VideoTrack)) {
-            getPrivate(event.track).media = media;
-            addVideoTrack(tracks, event.track as VideoTrack);
+            addVideoTrack(media, event.track as VideoTrack);
           }
         });
 
@@ -160,7 +154,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   }
 
   const initAudioTrackList = (media: HTMLMediaElement) => {
-    let tracks = getPrivate(media).audioTracks;
+    let tracks: AudioTrackList = getPrivate(media).audioTracks;
     if (!tracks) {
       tracks = new AudioTrackList();
       getPrivate(media).audioTracks = tracks;
@@ -170,8 +164,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
         const nativeTracks = getNativeAudioTracks.call(media);
 
         for (const nativeTrack of nativeTracks) {
-          getPrivate(nativeTrack).media = media;
-          addAudioTrack(tracks, nativeTrack);
+          addAudioTrack(media, nativeTrack);
         }
 
         nativeTracks.addEventListener('change', () => {
@@ -183,8 +176,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
           // This works because the API is identical and change event is forwarded.
           // If tracks were manually added prevent native tracks from being added.
           if (![...tracks].some(t => t instanceof AudioTrack)) {
-            getPrivate(event.track).media = media;
-            addAudioTrack(tracks, event.track as AudioTrack);
+            addAudioTrack(media, event.track as AudioTrack);
           }
         });
 

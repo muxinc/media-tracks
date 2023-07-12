@@ -2,37 +2,21 @@ import type { AudioTrack } from './audio-track.js';
 import { TrackEvent } from './track-event.js';
 import { getPrivate } from './utils.js';
 
-export function enabledChanged(track: AudioTrack) {
-  // Whenever an audio track in an AudioTrackList that was disabled is enabled,
-  // and whenever one that was enabled is disabled, the user agent must queue a
-  // media element task given the media element to fire an event named `change`
-  // at the AudioTrackList object.
-  const trackList = getPrivate(track).list;
+export function addAudioTrack(media: HTMLMediaElement, track: AudioTrack) {
+  const trackList = media.audioTracks;
 
-  // Prevent firing a track list `change` event multiple times per tick.
-  if (!trackList || getPrivate(trackList).changeRequested) return;
-  getPrivate(trackList).changeRequested = true;
-
-  queueMicrotask(() => {
-    delete getPrivate(trackList).changeRequested;
-    trackList.dispatchEvent(new Event('change'));
-  });
-}
-
-export function addAudioTrack(trackList: AudioTrackList, track: AudioTrack) {
   if (!getPrivate(track).list) {
     getPrivate(track).list = trackList;
+    getPrivate(track).media = media;
   }
 
-  const { renditionSet } = getPrivate(trackList);
-  renditionSet.add(track);
-  const index = renditionSet.size - 1;
+  const { collection } = getPrivate(trackList);
+  collection.add(track);
+  const index = collection.size - 1;
 
   if (!(index in AudioTrackList.prototype)) {
     Object.defineProperty(AudioTrackList.prototype, index, {
-      get() {
-        return [...renditionSet][index];
-      }
+      get() { return [...collection][index]; }
     });
   }
 
@@ -48,13 +32,28 @@ export function addAudioTrack(trackList: AudioTrackList, track: AudioTrack) {
 
 export function removeAudioTrack(track: AudioTrack) {
   const trackList: AudioTrackList = getPrivate(track).list;
-  delete getPrivate(track).list;
-
-  const renditionSet: Set<AudioTrack> = getPrivate(trackList).renditionSet;
-  renditionSet.delete(track);
+  const collection: Set<AudioTrack> = getPrivate(trackList).collection;
+  collection.delete(track);
 
   queueMicrotask(() => {
     trackList.dispatchEvent(new TrackEvent('removetrack', { track }));
+  });
+}
+
+export function enabledChanged(track: AudioTrack) {
+  // Whenever an audio track in an AudioTrackList that was disabled is enabled,
+  // and whenever one that was enabled is disabled, the user agent must queue a
+  // media element task given the media element to fire an event named `change`
+  // at the AudioTrackList object.
+  const trackList: AudioTrackList = getPrivate(track).list;
+
+  // Prevent firing a track list `change` event multiple times per tick.
+  if (!trackList || getPrivate(trackList).changeRequested) return;
+  getPrivate(trackList).changeRequested = true;
+
+  queueMicrotask(() => {
+    delete getPrivate(trackList).changeRequested;
+    trackList.dispatchEvent(new Event('change'));
   });
 }
 
@@ -67,11 +66,11 @@ export class AudioTrackList extends EventTarget {
 
   constructor() {
     super();
-    getPrivate(this).renditionSet = new Set();
+    getPrivate(this).collection = new Set();
   }
 
   get #tracks() {
-    return getPrivate(this).renditionSet;
+    return getPrivate(this).collection;
   }
 
   [Symbol.iterator]() {

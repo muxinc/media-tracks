@@ -1,9 +1,7 @@
-import type { VideoTrackList } from './video-track-list.js';
+import { selectedChanged } from './video-track-list.js';
 import { VideoRendition } from './video-rendition.js';
-import { VideoRenditionList } from './video-rendition-list.js';
-
-export const videoTrackToList = new Map();
-const changeRequested = new Map();
+import { addRendition, removeRendition } from './video-rendition-list.js';
+import { getPrivate } from './utils.js';
 
 export const VideoTrackKind = {
   alternative: 'alternative',
@@ -21,7 +19,6 @@ export class VideoTrack {
   language = '';
   sourceBuffer?: SourceBuffer;
   #selected = false;
-  #renditions = new VideoRenditionList();
 
   addRendition(
     src: string,
@@ -32,18 +29,20 @@ export class VideoTrack {
     frameRate?: number,
   ) {
     const rendition = new VideoRendition();
+    getPrivate(rendition).track = this;
     rendition.src = src;
     rendition.width = width;
     rendition.height = height;
     rendition.frameRate = frameRate;
     rendition.bitrate = bitrate;
     rendition.codec = codec;
-    this.#renditions.add(rendition);
+    addRendition(getPrivate(this).media.videoRenditions, rendition);
     return rendition;
   }
 
-  get renditions() {
-    return this.#renditions;
+  removeRendition(rendition: VideoRendition) {
+    delete getPrivate(rendition).track;
+    removeRendition(rendition);
   }
 
   get selected(): boolean {
@@ -56,25 +55,6 @@ export class VideoTrack {
 
     if (val !== true) return;
 
-    const trackList: VideoTrackList = videoTrackToList.get(this) ?? [];
-    // If other tracks are unselected, then a change event will be fired.
-    let hasUnselected = false;
-
-    for (const track of trackList) {
-      if (track === this) continue;
-      track.selected = false;
-      hasUnselected = true;
-    }
-
-    if (hasUnselected) {
-      // Prevent firing a track list `change` event multiple times per tick.
-      if (changeRequested.get(trackList)) return;
-      changeRequested.set(trackList, true);
-
-      queueMicrotask(() => {
-        changeRequested.delete(trackList);
-        trackList.dispatchEvent(new Event('change'));
-      });
-    }
+    selectedChanged(this);
   }
 }

@@ -46,37 +46,22 @@
       // Polyfilled media API's
       //
       // Add renditions to select element
-      // Listen for renditionchange events
+      // Listen for resize events
       // Enable / disable renditions from select
-      myVideo.videoTracks.addEventListener('addtrack', ({ track }) => {
 
-        track.renditions.addEventListener('addrendition', ({ rendition }) => {
-          qualityselect.append(new Option(
-            `${rendition.height}p`,
-            rendition.id,
-          ));
-        });
+      myVideo.videoRenditions.addEventListener('addrendition', ({ rendition }) => {
+        qualityselect.append(new Option(
+          `${rendition.height}p`,
+          rendition.id,
+        ));
+      });
 
-        track.renditions.addEventListener('renditionchange', () => {
-          for (let rendition of myVideo.videoTracks[0].renditions) {
-            if (rendition.active) {
-              qualityselected.textContent = `${rendition.height}p`;
-            }
-          }
-        });
+      myVideo.addEventListener('resize', () => {
+        qualityselected.textContent = `${Math.min(myVideo.videoWidth, myVideo.videoHeight)}p`;
       });
 
       qualityselect.addEventListener('change', () => {
-        if (qualityselect.value == 'auto') {
-          for (let rendition of myVideo.videoTracks[0].renditions) {
-            rendition.enabled = true;
-          }
-        } else {
-          // Select 1 video rendition
-          for (let rendition of myVideo.videoTracks[0].renditions) {
-            rendition.enabled = qualityselect.value == rendition.id;
-          }
-        }
+        myVideo.videoRenditions.selectedIndex = qualityselect.selectedIndex - 1;
       });
 
       // Audio tracks
@@ -109,7 +94,6 @@
 
         // We will handle this in custom-media-element, hls-video, mux-video, etc.
         hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-          // console.log(data);
 
           const videoTrack = myVideo.addVideoTrack('main');
           videoTrack.selected = true;
@@ -125,58 +109,41 @@
             );
 
             videoRendition.id = id;
-            videoRendition.enabled = true;
-
-            if (id == data.firstLevel) {
-              videoRendition.active = true;
-            }
           }
 
           for (let [id, a] of data.audioTracks.entries()) {
-            // console.log(a);
+
             const kind = a.default ? 'main' : 'alternative';
             const audioTrack = myVideo.addAudioTrack(kind, a.name, a.lang);
             audioTrack.id = id;
+
             if (a.default) {
               audioTrack.enabled = true;
             }
-
           }
         });
 
-        hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
-          const rendition = myVideo.videoTracks[0].renditions.getRenditionById(data.level);
-          rendition.active = true;
-        });
-
         // hls.js doesn't support enabling multiple renditions easily
-        // for demo purposes if all renditions are enabled it's auto selection
-        // if 1 of the renditions is disabled we assume a selection was made
-        // and lock it to the first rendition that is enabled.
-        myVideo.videoTracks.addEventListener('addtrack', ({ track }) => {
+        // for demo purposes if all renditions are selected it's auto selection
+        // if 1 of the renditions is deselected we assume a selection was made
+        // and lock it to the first rendition that is selected.
 
-          track.renditions.addEventListener('change', () => {
-            let level;
-            if ([...track.renditions].some(rendition => !rendition.enabled)) {
-              level = [...track.renditions].find(r => r.enabled).id;
-            } else {
-              level = -1;
-            }
+        myVideo.videoRenditions.addEventListener('change', (event) => {
+          console.log(event);
 
-            if (level != hls.currentLevel) {
-              console.log(`Changing level to ${level}`);
-              hls.nextLevel = level;
-            }
-          });
+          let level = myVideo.videoRenditions.selectedIndex;
+
+          if (level != hls.currentLevel) {
+            console.log(`Changing level to ${level}`);
+            hls.nextLevel = level;
+          }
         });
 
         myVideo.audioTracks.addEventListener('change', () => {
-          const selected = [...myVideo.audioTracks].find(t => t.enabled);
-          hls.audioTrack = selected.id;
+          hls.audioTrack = [...myVideo.audioTracks].find(t => t.enabled).id;
         });
 
         // end of internal media tracks / renditions implementation
-
       }
 
       myVideo.addEventListener('emptied', (e) => {

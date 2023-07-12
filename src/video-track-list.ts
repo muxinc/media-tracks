@@ -1,13 +1,84 @@
-import { VideoTrack, videoTrackToList } from './video-track.js';
+import type { VideoTrack } from './video-track.js';
 import { TrackEvent } from './track-event.js';
+import { getPrivate } from './utils.js';
+
+export function selectedChanged(selected: VideoTrack) {
+  const trackList: VideoTrackList = getPrivate(selected).list ?? [];
+  // If other tracks are unselected, then a change event will be fired.
+  let hasUnselected = false;
+
+  for (const track of trackList) {
+    if (track === selected) continue;
+    track.selected = false;
+    hasUnselected = true;
+  }
+
+  if (hasUnselected) {
+    // Prevent firing a track list `change` event multiple times per tick.
+    if (getPrivate(trackList).changeRequested) return;
+    getPrivate(trackList).changeRequested = true;
+
+    queueMicrotask(() => {
+      delete getPrivate(trackList).changeRequested;
+      trackList.dispatchEvent(new Event('change'));
+    });
+  }
+}
+
+export function addVideoTrack(trackList: VideoTrackList, track: VideoTrack) {
+  if (!getPrivate(track).list) {
+    getPrivate(track).list = trackList;
+  }
+
+  const { renditionSet } = getPrivate(trackList);
+  renditionSet.add(track);
+  const index = renditionSet.size - 1;
+
+  if (!(index in VideoTrackList.prototype)) {
+    Object.defineProperty(VideoTrackList.prototype, index, {
+      get() {
+        return [...renditionSet][index];
+      }
+    });
+  }
+
+  // The event is queued, this is in line with the native `addtrack` event.
+  // https://html.spec.whatwg.org/multipage/media.html#dom-media-addtexttrack
+  //
+  // This can be useful for setting additional props on the track object
+  // after having called addTrack().
+  queueMicrotask(() => {
+    trackList.dispatchEvent(new TrackEvent('addtrack', { track }));
+  });
+}
+
+export function removeVideoTrack(track: VideoTrack) {
+  const trackList: VideoTrackList = getPrivate(track).list;
+  delete getPrivate(track).list;
+
+  const renditionSet: Set<VideoTrack> = getPrivate(trackList).renditionSet;
+  renditionSet.delete(track);
+
+  queueMicrotask(() => {
+    trackList.dispatchEvent(new TrackEvent('removetrack', { track }));
+  });
+}
 
 // https://html.spec.whatwg.org/multipage/media.html#videotracklist
 export class VideoTrackList extends EventTarget {
   [index: number]: VideoTrack;
-  #tracks: Set<VideoTrack> = new Set();
   #addTrackCallback?: () => void;
   #removeTrackCallback?: () => void;
   #changeCallback?: () => void;
+
+  constructor() {
+    super();
+    getPrivate(this).renditionSet = new Set();
+  }
+
+  get #tracks() {
+    return getPrivate(this).renditionSet;
+  }
 
   [Symbol.iterator]() {
     return this.#tracks.values();
@@ -15,46 +86,6 @@ export class VideoTrackList extends EventTarget {
 
   get length() {
     return this.#tracks.size;
-  }
-
-  add(track: VideoTrack) {
-    if (!videoTrackToList.has(track)) {
-      videoTrackToList.set(track, this);
-    }
-
-    this.#tracks.add(track);
-    const index = this.length - 1;
-
-    if (!(index in VideoTrackList.prototype)) {
-      Object.defineProperty(VideoTrackList.prototype, index, {
-        get() {
-          return [...this.#tracks][index];
-        }
-      });
-    }
-
-    // The event is queued, this is in line with the native `addtrack` event.
-    // https://html.spec.whatwg.org/multipage/media.html#dom-media-addtexttrack
-    //
-    // This can be useful for setting additional props on the track object
-    // after having called addTrack().
-    queueMicrotask(() => {
-      this.dispatchEvent(new TrackEvent('addtrack', { track }));
-    });
-  }
-
-  remove(track: VideoTrack) {
-    videoTrackToList.delete(track);
-
-    this.#tracks.delete(track);
-
-    queueMicrotask(() => {
-      this.dispatchEvent(new TrackEvent('removetrack', { track }));
-    });
-  }
-
-  contains(track: VideoTrack) {
-    return this.#tracks.has(track);
   }
 
   getTrackById(id: string): VideoTrack | null {

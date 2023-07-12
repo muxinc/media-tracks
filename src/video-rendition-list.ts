@@ -1,58 +1,95 @@
-import { VideoRendition, videoRenditionToList } from './video-rendition.js';
+import type { VideoRendition } from './video-rendition.js';
 import { RenditionEvent } from './rendition-event.js';
+import { getPrivate } from './utils.js';
+
+export function addRendition(renditionList: VideoRenditionList, rendition: VideoRendition) {
+  if (!getPrivate(rendition).list) {
+    getPrivate(rendition).list = renditionList;
+  }
+
+  const { renditionSet } = getPrivate(renditionList);
+  renditionSet.add(rendition);
+  const index = renditionSet.size - 1;
+
+  if (!(index in VideoRenditionList.prototype)) {
+    Object.defineProperty(VideoRenditionList.prototype, index, {
+      get() {
+        return getCurrentRenditions(this)[index];
+      },
+    });
+  }
+
+  queueMicrotask(() => {
+    if (!getPrivate(rendition).track.selected) return;
+    renditionList.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
+  });
+}
+
+export function removeRendition(rendition: VideoRendition) {
+  const renditionList: VideoRenditionList = getPrivate(rendition).list;
+  delete getPrivate(rendition).list;
+
+  const { renditionSet } = getPrivate(renditionList);
+  renditionSet.delete(rendition);
+
+  queueMicrotask(() => {
+    if (!getPrivate(rendition).track.selected) return;
+    renditionList.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
+  });
+}
+
+export function selectedChanged(rendition: VideoRendition) {
+  const renditionList: VideoRenditionList = getPrivate(rendition).list;
+
+  // Prevent firing a rendition list `change` event multiple times per tick.
+  if (!renditionList || getPrivate(renditionList).changeRequested) return;
+  getPrivate(renditionList).changeRequested = true;
+
+  queueMicrotask(() => {
+    delete getPrivate(renditionList).changeRequested;
+
+    if (!getPrivate(rendition).track.selected) return;
+    renditionList.dispatchEvent(new Event('change'));
+  });
+}
+
+function getCurrentRenditions(renditionList: VideoRenditionList): VideoRendition[] {
+  return [...getPrivate(renditionList).renditionSet].filter(rendition => {
+    return getPrivate(rendition).track.selected;
+  });
+}
 
 export class VideoRenditionList extends EventTarget {
   [index: number]: VideoRendition;
-  #renditions: Set<VideoRendition> = new Set();
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;
   #changeCallback?: () => void;
 
+  constructor() {
+    super();
+    getPrivate(this).renditionSet = new Set();
+  }
+
   [Symbol.iterator]() {
-    return this.#renditions.values();
+    return getCurrentRenditions(this).values();
   }
 
   get length() {
-    return this.#renditions.size;
-  }
-
-  add(rendition: VideoRendition) {
-    if (!videoRenditionToList.has(rendition)) {
-      videoRenditionToList.set(rendition, this);
-    }
-
-    this.#renditions.add(rendition);
-    const index = this.length - 1;
-
-    if (!(index in VideoRenditionList.prototype)) {
-      Object.defineProperty(VideoRenditionList.prototype, index, {
-        get() {
-          return [...this.#renditions][index];
-        },
-      });
-    }
-
-    queueMicrotask(() => {
-      this.dispatchEvent(new RenditionEvent('addrendition', { rendition }));
-    });
-  }
-
-  remove(rendition: VideoRendition) {
-    videoRenditionToList.delete(rendition);
-
-    this.#renditions.delete(rendition);
-
-    queueMicrotask(() => {
-      this.dispatchEvent(new RenditionEvent('removerendition', { rendition }));
-    });
-  }
-
-  contains(rendition: VideoRendition) {
-    return this.#renditions.has(rendition);
+    return getCurrentRenditions(this).length;
   }
 
   getRenditionById(id: string): VideoRendition | null {
-    return [...this.#renditions].find((rendition) => `${rendition.id}` === `${id}`) ?? null;
+    return getCurrentRenditions(this).find((rendition) => `${rendition.id}` === `${id}`) ?? null;
+  }
+
+  get selectedIndex() {
+    return getCurrentRenditions(this).findIndex((rendition) => rendition.selected);
+  }
+
+  set selectedIndex(index) {
+    for (const [i, rendition] of getCurrentRenditions(this).entries()) {
+      rendition.selected = i === index;
+    }
   }
 
   get onaddrendition() {

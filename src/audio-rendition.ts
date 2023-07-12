@@ -1,10 +1,7 @@
-import type { AudioRenditionList } from './audio-rendition-list.js';
-
-export const audioRenditionToList = new Map();
-const changeRequested = new Map();
+import { selectedChanged } from './audio-rendition-list.js';
 
 /**
- * - The consumer should use the `enabled` setter to select 1 or multiple
+ * - The consumer should use the `selected` setter to select 1 or multiple
  *   renditions that the engine is allowed to play.
  */
 export class AudioRendition {
@@ -12,25 +9,16 @@ export class AudioRendition {
   id?: string;
   bitrate?: number;
   codec?: string;
-  #enabled = false;
+  #selected = false;
 
-  get enabled(): boolean {
-    return this.#enabled;
+  get selected(): boolean {
+    return this.#selected;
   }
 
-  set enabled(val: boolean) {
-    if (this.#enabled === val) return;
-    this.#enabled = val;
+  set selected(val: boolean) {
+    if (this.#selected === val) return;
+    this.#selected = val;
 
-    const renditionList: AudioRenditionList = audioRenditionToList.get(this);
-
-    // Prevent firing a rendition list `change` event multiple times per tick.
-    if (!renditionList || changeRequested.get(renditionList)) return;
-    changeRequested.set(renditionList, true);
-
-    queueMicrotask(() => {
-      changeRequested.delete(renditionList);
-      renditionList.dispatchEvent(new Event('change'));
-    });
+    selectedChanged(this);
   }
 }

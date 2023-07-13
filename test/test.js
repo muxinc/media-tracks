@@ -1,16 +1,30 @@
 import { fixture, assert, oneEvent, aTimeout } from '@open-wc/testing';
 import '../dist/polyfill.js';
-import { VideoTrackList } from '../dist/video-track-list.js';
-import { VideoRenditionList } from '../dist/video-rendition-list.js';
+import {
+  VideoTrackList,
+  VideoRenditionList,
+  AudioTrackList,
+  AudioRenditionList
+} from '../dist/index.js';
 
 it('is an instance of VideoTrackList', async function () {
   const video = await fixture(`<video></video>`);
   assert(video.videoTracks instanceof VideoTrackList);
 });
 
+it('is an instance of AudioTrackList', async function () {
+  const video = await fixture(`<video></video>`);
+  assert(video.audioTracks instanceof AudioTrackList);
+});
+
 it('is an instance of VideoRenditionList', async function () {
   const video = await fixture(`<video></video>`);
   assert(video.videoRenditions instanceof VideoRenditionList);
+});
+
+it('is an instance of AudioRenditionList', async function () {
+  const video = await fixture(`<video></video>`);
+  assert(video.audioRenditions instanceof AudioRenditionList);
 });
 
 it('fires queued addtrack event', async function () {

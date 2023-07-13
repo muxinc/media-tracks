@@ -1,8 +1,15 @@
+import { esbuildPlugin } from '@web/dev-server-esbuild';
+
 export default {
   nodeResolve: true,
-  files: ['test/**/*.js'],
+  files: ['test/test.js'],
+  plugins: [
+    esbuildPlugin({
+      ts: true,
+    }),
+  ],
   coverageConfig: {
     report: true,
-    include: ['dist/**/*'],
+    include: ['src/**/*'],
   },
 }

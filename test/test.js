@@ -1,11 +1,11 @@
 import { fixture, assert, oneEvent, aTimeout } from '@open-wc/testing';
-import '../dist/polyfill.js';
+import '../src/polyfill.ts';
 import {
   VideoTrackList,
   VideoRenditionList,
   AudioTrackList,
   AudioRenditionList
-} from '../dist/index.js';
+} from '../src/index.ts';
 
 it('is an instance of VideoTrackList', async function () {
   const video = await fixture(`<video></video>`);

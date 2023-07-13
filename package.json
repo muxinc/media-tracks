@@ -14,7 +14,6 @@
   ],
   "scripts": {
     "lint": "npx eslint src/*.ts",
-    "pretest": "esbuild src/*.ts --format=esm --outdir=dist",
     "test": "web-test-runner --coverage --config test/web-test-runner.config.js",
     "dev": "esbuild src/*.ts --format=esm --outdir=dist --servedir=.",
     "build": "rm -rf dist && esbuild src/*.ts --format=esm --outdir=dist",
@@ -27,6 +26,7 @@
     "@open-wc/testing": "^3.2.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@web/dev-server-esbuild": "^0.4.1",
     "@web/test-runner": "^0.17.0",
     "esbuild": "^0.18.12",
     "eslint": "^8.44.0",

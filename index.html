@@ -51,7 +51,7 @@
 
       myVideo.videoRenditions.addEventListener('addrendition', ({ rendition }) => {
         qualityselect.append(new Option(
-          `${rendition.height}p`,
+          `${Math.min(rendition.width, rendition.height)}p`,
           rendition.id,
         ));
       });

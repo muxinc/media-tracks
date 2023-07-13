@@ -10,7 +10,7 @@ export function addVideoTrack(media: HTMLMediaElement, track: VideoTrack) {
     getPrivate(track).media = media;
   }
 
-  const { collection } = getPrivate(trackList);
+  const collection: Set<VideoTrack> = getPrivate(trackList).collection;
   collection.add(track);
   const index = collection.size - 1;
 

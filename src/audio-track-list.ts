@@ -10,7 +10,7 @@ export function addAudioTrack(media: HTMLMediaElement, track: AudioTrack) {
     getPrivate(track).media = media;
   }
 
-  const { collection } = getPrivate(trackList);
+  const collection: Set<AudioTrack> = getPrivate(trackList).collection;
   collection.add(track);
   const index = collection.size - 1;
 

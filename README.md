@@ -2,6 +2,7 @@
 
 [![Version](https://img.shields.io/npm/v/media-tracks?style=flat-square)](https://www.npmjs.com/package/media-tracks) 
 [![Badge size](https://img.badgesize.io/https://cdn.jsdelivr.net/npm/media-tracks/+esm?compression=gzip&label=gzip&style=flat-square)](https://cdn.jsdelivr.net/npm/media-tracks/+esm)
+![Codecov](https://img.shields.io/codecov/c/github/muxinc/media-tracks?style=flat-square)
 
 
 Polyfills the media elements (`<audio>` or `<video>`) adding audio and video tracks (as [specced](https://html.spec.whatwg.org/multipage/media.html#media-resources-with-multiple-media-tracks)) and with renditions as proposed in [media-ui-extensions](https://github.com/video-dev/media-ui-extensions).

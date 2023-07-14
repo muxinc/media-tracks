@@ -1,3 +1,14 @@
+## [0.2.1](https://github.com/muxinc/media-tracks/compare/v0.2.0...v0.2.1) (2023-07-14)
+
+
+### Bug Fixes
+
+* add better typing to collection ([ab58b92](https://github.com/muxinc/media-tracks/commit/ab58b9245bd4d46e8d140f82b5b894bf2a14cba3))
+* removed track lingering renditions bug ([c03645a](https://github.com/muxinc/media-tracks/commit/c03645a314d7d2c1a15ab529fe703c5090fc5d45))
+* track list index bug ([0dfe142](https://github.com/muxinc/media-tracks/commit/0dfe142c5c439e60e70b2f50c36e3d81e3977f72))
+
+
+
 # [0.2.0](https://github.com/muxinc/media-tracks/compare/v0.1.2...v0.2.0) (2023-07-12)
 
 

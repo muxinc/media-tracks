@@ -16,7 +16,7 @@ export function addAudioTrack(media: HTMLMediaElement, track: AudioTrack) {
 
   if (!(index in AudioTrackList.prototype)) {
     Object.defineProperty(AudioTrackList.prototype, index, {
-      get() { return [...trackSet][index]; }
+      get() { return [...getPrivate(this).trackSet][index]; }
     });
   }
 

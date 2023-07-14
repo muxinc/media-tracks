@@ -16,7 +16,7 @@ export function addVideoTrack(media: HTMLMediaElement, track: VideoTrack) {
 
   if (!(index in VideoTrackList.prototype)) {
     Object.defineProperty(VideoTrackList.prototype, index, {
-      get() { return [...trackSet][index]; }
+      get() { return [...getPrivate(this).trackSet][index]; }
     });
   }
 

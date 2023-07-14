@@ -27,15 +27,35 @@ it('is an instance of AudioRenditionList', async function () {
   assert(video.audioRenditions instanceof AudioRenditionList);
 });
 
-it('fires queued addtrack event', async function () {
+it('get video track with getTrackById', async function () {
   const video = await fixture(`<video></video>`);
-  const track = video.addVideoTrack('main');
+  const track1 = video.addVideoTrack('main');
+  track1.id = "1";
+  const track2 = video.addVideoTrack('alternative');
+  track2.id = "2";
+  assert.equal(video.videoTracks.getTrackById("1"), track1);
+  assert.equal(video.videoTracks.getTrackById("2"), track2);
+});
+
+it('get audio track with getTrackById', async function () {
+  const video = await fixture(`<video></video>`);
+  const track1 = video.addAudioTrack('main');
+  track1.id = "1";
+  const track2 = video.addAudioTrack('alternative');
+  track2.id = "2";
+  assert.equal(video.audioTracks.getTrackById("1"), track1);
+  assert.equal(video.audioTracks.getTrackById("2"), track2);
+});
+
+it('fires queued addtrack event on video tracks', async function () {
+  const video = await fixture(`<video></video>`);
+  const track = video.addVideoTrack('sign');
   const event = await oneEvent(video.videoTracks, 'addtrack');
-  assert.equal(track, event.track);
+  assert.equal(track, event.track, 'same event track');
   assert.equal(video.videoTracks.length, 1);
   assert.equal(video.videoTracks.selectedIndex, -1);
-  assert.equal(track, video.videoTracks[0]);
-  assert.equal(track, [...video.videoTracks][0]);
+  assert.equal(track, video.videoTracks[0], 'same index track');
+  assert.equal(track, [...video.videoTracks][0], 'same iterator track');
 });
 
 it('fires queued removetrack event', async function () {

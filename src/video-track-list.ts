@@ -4,19 +4,19 @@ import { getPrivate } from './utils.js';
 
 export function addVideoTrack(media: HTMLMediaElement, track: VideoTrack) {
   const trackList = media.videoTracks;
+  getPrivate(track).media = media;
 
-  if (!getPrivate(track).list) {
-    getPrivate(track).list = trackList;
-    getPrivate(track).media = media;
+  if (!getPrivate(track).renditionSet) {
+    getPrivate(track).renditionSet = new Set();
   }
 
-  const collection: Set<VideoTrack> = getPrivate(trackList).collection;
-  collection.add(track);
-  const index = collection.size - 1;
+  const trackSet: Set<VideoTrack> = getPrivate(trackList).trackSet;
+  trackSet.add(track);
+  const index = trackSet.size - 1;
 
   if (!(index in VideoTrackList.prototype)) {
     Object.defineProperty(VideoTrackList.prototype, index, {
-      get() { return [...collection][index]; }
+      get() { return [...trackSet][index]; }
     });
   }
 
@@ -31,9 +31,9 @@ export function addVideoTrack(media: HTMLMediaElement, track: VideoTrack) {
 }
 
 export function removeVideoTrack(track: VideoTrack) {
-  const trackList: VideoTrackList = getPrivate(track).list;
-  const collection: Set<VideoTrack> = getPrivate(trackList).collection;
-  collection.delete(track);
+  const trackList: VideoTrackList = getPrivate(track).media.videoTracks;
+  const trackSet: Set<VideoTrack> = getPrivate(trackList).trackSet;
+  trackSet.delete(track);
 
   queueMicrotask(() => {
     trackList.dispatchEvent(new TrackEvent('removetrack', { track }));
@@ -41,7 +41,7 @@ export function removeVideoTrack(track: VideoTrack) {
 }
 
 export function selectedChanged(selected: VideoTrack) {
-  const trackList: VideoTrackList = getPrivate(selected).list ?? [];
+  const trackList: VideoTrackList = getPrivate(selected).media.videoTracks ?? [];
   // If other tracks are unselected, then a change event will be fired.
   let hasUnselected = false;
 
@@ -72,11 +72,11 @@ export class VideoTrackList extends EventTarget {
 
   constructor() {
     super();
-    getPrivate(this).collection = new Set();
+    getPrivate(this).trackSet = new Set();
   }
 
   get #tracks() {
-    return getPrivate(this).collection;
+    return getPrivate(this).trackSet;
   }
 
   [Symbol.iterator]() {

@@ -44,17 +44,27 @@ it('fires queued removetrack event', async function () {
   assert.equal(video.videoTracks.length, 0);
 });
 
-it('fires queued addrendition event on selected track', async function () {
+it('fires queued addrendition event on selected video track', async function () {
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   track.selected = true;
-  const rendtion = track.addRendition('http://', 1920, 1080);
+  const rendition = track.addRendition('http://', 1920, 1080);
   const event = await oneEvent(video.videoRenditions, 'addrendition');
-  assert.equal(rendtion, event.rendition);
+  assert.equal(rendition, event.rendition);
   assert.equal(video.videoRenditions.length, 1);
 });
 
-it('fires no addrendition event on unselected track', async function () {
+it('fires queued addrendition event on enabled audio track', async function () {
+  const video = await fixture(`<video></video>`);
+  const track = video.addAudioTrack('main');
+  track.enabled = true;
+  const rendition = track.addRendition('http://', 'aac');
+  const event = await oneEvent(video.audioRenditions, 'addrendition');
+  assert.equal(rendition, event.rendition);
+  assert.equal(video.audioRenditions.length, 1);
+});
+
+it('fires no addrendition event on unselected video track', async function () {
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
 
@@ -65,4 +75,69 @@ it('fires no addrendition event on unselected track', async function () {
   ]);
 
   assert.equal(video.videoRenditions.length, 0);
+});
+
+it('fires queued removerendition event on selected video track', async function () {
+  const video = await fixture(`<video></video>`);
+  const track = video.addVideoTrack('main');
+  track.selected = true;
+  track.addRendition('http://', 1920, 1080);
+  const rendition = track.addRendition('http://', 1920, 1080);
+  track.removeRendition(rendition);
+  const event = await oneEvent(video.videoRenditions, 'removerendition');
+  assert.equal(rendition, event.rendition);
+  assert.equal(video.videoRenditions.length, 1);
+});
+
+it('fires batched change event on selected video rendition', async function () {
+  const video = await fixture(`<video></video>`);
+  const track = video.addVideoTrack('main');
+  track.selected = true;
+  const r0 = track.addRendition('http://', 1920, 1080);
+  const r1 = track.addRendition('http://', 1280, 720);
+
+  video.videoRenditions.selectedIndex = 0;
+  video.videoRenditions.selectedIndex = 1;
+  video.videoRenditions.selectedIndex = 0;
+
+  await oneEvent(video.videoRenditions, 'change');
+  assert(r0.selected);
+  assert(!r1.selected);
+});
+
+it('fires batched change event on selected audio rendition', async function () {
+  const video = await fixture(`<video></video>`);
+  const track = video.addAudioTrack('main');
+  track.enabled = true;
+  const r0 = track.addRendition('http://', 'aac');
+  const r1 = track.addRendition('http://', 'opus');
+
+  video.audioRenditions.selectedIndex = 0;
+  video.audioRenditions.selectedIndex = 1;
+  video.audioRenditions.selectedIndex = 0;
+
+  await oneEvent(video.audioRenditions, 'change');
+  assert(r0.selected);
+  assert(!r1.selected);
+});
+
+it('renditions of removed tracks are not listed', async function () {
+  const video = await fixture(`<video></video>`);
+
+  const track = video.addVideoTrack('main');
+  track.selected = true;
+  track.addRendition('http://', 1920, 1080);
+  track.addRendition('http://', 1280, 720);
+  assert.equal(video.videoRenditions.length, 2);
+
+  video.removeVideoTrack(track);
+
+  const track2 = video.addVideoTrack('commentary');
+  track2.selected = true;
+  assert.equal(video.videoTracks.length, 1);
+
+  track2.addRendition('http://', 1920, 1080);
+  track2.addRendition('http://', 1280, 720);
+
+  assert.equal(video.videoRenditions.length, 2);
 });

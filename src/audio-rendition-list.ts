@@ -6,14 +6,12 @@ import { getPrivate } from './utils.js';
 export function addRendition(track: AudioTrack, rendition: AudioRendition) {
   const renditionList = getPrivate(track).media.audioRenditions;
 
-  if (!getPrivate(rendition).list) {
-    getPrivate(rendition).list = renditionList;
-    getPrivate(rendition).track = track;
-  }
+  getPrivate(rendition).media = getPrivate(track).media;
+  getPrivate(rendition).track = track;
 
-  const { collection } = getPrivate(renditionList);
-  collection.add(rendition);
-  const index = collection.size - 1;
+  const renditionSet: Set<AudioRendition> = getPrivate(track).renditionSet;
+  renditionSet.add(rendition);
+  const index = renditionSet.size - 1;
 
   if (!(index in AudioRenditionList.prototype)) {
     Object.defineProperty(AudioRenditionList.prototype, index, {
@@ -29,9 +27,10 @@ export function addRendition(track: AudioTrack, rendition: AudioRendition) {
 }
 
 export function removeRendition(rendition: AudioRendition) {
-  const renditionList: AudioRenditionList = getPrivate(rendition).list;
-  const collection: Set<AudioRendition> = getPrivate(renditionList).collection;
-  collection.delete(rendition);
+  const renditionList: AudioRenditionList = getPrivate(rendition).media.audioRenditions;
+  const track: AudioTrack = getPrivate(rendition).track;
+  const renditionSet: Set<AudioRendition> = getPrivate(track).renditionSet;
+  renditionSet.delete(rendition);
 
   queueMicrotask(() => {
     const track: AudioTrack = getPrivate(rendition).track;
@@ -42,7 +41,7 @@ export function removeRendition(rendition: AudioRendition) {
 }
 
 export function selectedChanged(rendition: AudioRendition) {
-  const renditionList: AudioRenditionList = getPrivate(rendition).list;
+  const renditionList: AudioRenditionList = getPrivate(rendition).media.audioRenditions;
 
   // Prevent firing a rendition list `change` event multiple times per tick.
   if (!renditionList || getPrivate(renditionList).changeRequested) return;
@@ -59,9 +58,10 @@ export function selectedChanged(rendition: AudioRendition) {
 }
 
 function getCurrentRenditions(renditionList: AudioRenditionList): AudioRendition[] {
-  return [...getPrivate(renditionList).collection].filter(rendition => {
-    return getPrivate(rendition).track.enabled;
-  });
+  const media: HTMLMediaElement = getPrivate(renditionList).media;
+  return [...media.audioTracks]
+    .filter((track: AudioTrack) => track.enabled)
+    .flatMap((track: AudioTrack) => [...getPrivate(track).renditionSet]);
 }
 
 export class AudioRenditionList extends EventTarget {
@@ -69,11 +69,6 @@ export class AudioRenditionList extends EventTarget {
   #addRenditionCallback?: () => void;
   #removeRenditionCallback?: () => void;
   #changeCallback?: () => void;
-
-  constructor() {
-    super();
-    getPrivate(this).collection = new Set();
-  }
 
   [Symbol.iterator]() {
     return getCurrentRenditions(this).values();

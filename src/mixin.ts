@@ -200,6 +200,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     let renditions = getPrivate(media).videoRenditions;
     if (!renditions) {
       renditions = new VideoRenditionList();
+      getPrivate(renditions).media = media;
       getPrivate(media).videoRenditions = renditions;
     }
     return renditions;
@@ -217,6 +218,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     let renditions = getPrivate(media).audioRenditions;
     if (!renditions) {
       renditions = new AudioRenditionList();
+      getPrivate(renditions).media = media;
       getPrivate(media).audioRenditions = renditions;
     }
     return renditions;

@@ -4,19 +4,19 @@ import { getPrivate } from './utils.js';
 
 export function addAudioTrack(media: HTMLMediaElement, track: AudioTrack) {
   const trackList = media.audioTracks;
+  getPrivate(track).media = media;
 
-  if (!getPrivate(track).list) {
-    getPrivate(track).list = trackList;
-    getPrivate(track).media = media;
+  if (!getPrivate(track).renditionSet) {
+    getPrivate(track).renditionSet = new Set();
   }
 
-  const collection: Set<AudioTrack> = getPrivate(trackList).collection;
-  collection.add(track);
-  const index = collection.size - 1;
+  const trackSet: Set<AudioTrack> = getPrivate(trackList).trackSet;
+  trackSet.add(track);
+  const index = trackSet.size - 1;
 
   if (!(index in AudioTrackList.prototype)) {
     Object.defineProperty(AudioTrackList.prototype, index, {
-      get() { return [...collection][index]; }
+      get() { return [...trackSet][index]; }
     });
   }
 
@@ -31,9 +31,9 @@ export function addAudioTrack(media: HTMLMediaElement, track: AudioTrack) {
 }
 
 export function removeAudioTrack(track: AudioTrack) {
-  const trackList: AudioTrackList = getPrivate(track).list;
-  const collection: Set<AudioTrack> = getPrivate(trackList).collection;
-  collection.delete(track);
+  const trackList: AudioTrackList = getPrivate(track).media.audioTracks;
+  const trackSet: Set<AudioTrack> = getPrivate(trackList).trackSet;
+  trackSet.delete(track);
 
   queueMicrotask(() => {
     trackList.dispatchEvent(new TrackEvent('removetrack', { track }));
@@ -45,7 +45,7 @@ export function enabledChanged(track: AudioTrack) {
   // and whenever one that was enabled is disabled, the user agent must queue a
   // media element task given the media element to fire an event named `change`
   // at the AudioTrackList object.
-  const trackList: AudioTrackList = getPrivate(track).list;
+  const trackList: AudioTrackList = getPrivate(track).media.audioTracks;
 
   // Prevent firing a track list `change` event multiple times per tick.
   if (!trackList || getPrivate(trackList).changeRequested) return;
@@ -66,11 +66,11 @@ export class AudioTrackList extends EventTarget {
 
   constructor() {
     super();
-    getPrivate(this).collection = new Set();
+    getPrivate(this).trackSet = new Set();
   }
 
   get #tracks() {
-    return getPrivate(this).collection;
+    return getPrivate(this).trackSet;
   }
 
   [Symbol.iterator]() {

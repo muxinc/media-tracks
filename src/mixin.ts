@@ -27,36 +27,22 @@ declare global {
   }
 }
 
+const nativeVideoTracksFn = getBaseMediaTracksFn(globalThis.HTMLMediaElement, 'video');
+const nativeAudioTracksFn = getBaseMediaTracksFn(globalThis.HTMLMediaElement, 'audio');
+
+// Safari supports native media tracks by default.
+//
+// Chrome and Firefox can enable support with a browser flag
+// but it does not work because the browser doesn't know about
+// the manifest and the available tracks.
+// The browser only knows about the media source (MSE).
+//
+// We also want to add / remove tracks manually which is not
+// possible in the native implementations afaik.
+
 export function MediaTracksMixin<T>(MediaElementClass: T): T {
   // @ts-ignore
   if (!MediaElementClass?.prototype) return MediaElementClass;
-
-  // Safari supports native media tracks by default.
-  //
-  // Chrome and Firefox can enable support with a browser flag
-  // but it does not work because the browser doesn't know about
-  // the manifest and the available tracks.
-  // The browser only knows about the media source (MSE).
-  //
-  // We also want to add / remove tracks manually which is not
-  // possible in the native implementations afaik.
-
-  const getNativeVideoTracks = Object.getOwnPropertyDescriptor(
-    // @ts-ignore
-    MediaElementClass.prototype,
-    'videoTracks'
-  )?.get;
-
-  const getNativeAudioTracks = Object.getOwnPropertyDescriptor(
-    // @ts-ignore
-    MediaElementClass.prototype,
-    'audioTracks'
-  )?.get;
-
-  const isPolyfilled = getNativeVideoTracks &&
-    !`${getNativeVideoTracks}`.includes('[native code]');
-
-  if (isPolyfilled) return MediaElementClass;
 
   // Patch even if the tracks are natively supported because when both native
   // HLS and MSE is supported (e.g. Safari desktop) there is no way to know up
@@ -68,15 +54,23 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   //
   // Keep the native track list in sync with our shim track list below.
 
-  // @ts-ignore
-  Object.defineProperty(MediaElementClass.prototype, 'videoTracks', {
-    get() { return initVideoTrackList(this); }
-  });
+  const videoTracksFn = getBaseMediaTracksFn(MediaElementClass, 'video');
 
-  // @ts-ignore
-  Object.defineProperty(MediaElementClass.prototype, 'audioTracks', {
-    get() { return initAudioTrackList(this); }
-  });
+  if (!videoTracksFn || `${videoTracksFn}`.includes('[native code]')) {
+    // @ts-ignore
+    Object.defineProperty(MediaElementClass.prototype, 'videoTracks', {
+      get() { return getVideoTracks(this); }
+    });
+  }
+
+  const audioTracksFn = getBaseMediaTracksFn(MediaElementClass, 'audio');
+
+  if (!audioTracksFn || `${audioTracksFn}`.includes('[native code]')) {
+    // @ts-ignore
+    Object.defineProperty(MediaElementClass.prototype, 'audioTracks', {
+      get() { return getAudioTracks(this); }
+    });
+  }
 
   // There is video.addTextTrack so makes sense to add addVideoTrack and addAudioTrack
 
@@ -118,76 +112,6 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     MediaElementClass.prototype.removeAudioTrack = removeAudioTrack;
   }
 
-  const initVideoTrackList = (media: HTMLMediaElement) => {
-    let tracks: VideoTrackList = getPrivate(media).videoTracks;
-    if (!tracks) {
-      tracks = new VideoTrackList();
-      getPrivate(media).videoTracks = tracks;
-
-      // Sync native tracks to shim track list
-      if (getNativeVideoTracks) {
-        const nativeTracks = getNativeVideoTracks.call(media);
-
-        for (const nativeTrack of nativeTracks) {
-          addVideoTrack(media, nativeTrack);
-        }
-
-        nativeTracks.addEventListener('change', () => {
-          tracks.dispatchEvent(new Event('change'));
-        });
-
-        nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
-          // Note: adding native track instances to the shim track list here.
-          // This works because the API is identical and change event is forwarded.
-          // If tracks were manually added prevent native tracks from being added.
-          if (![...tracks].some(t => t instanceof VideoTrack)) {
-            addVideoTrack(media, event.track as VideoTrack);
-          }
-        });
-
-        nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
-          removeVideoTrack(event.track  as VideoTrack);
-        });
-      }
-    }
-    return tracks;
-  }
-
-  const initAudioTrackList = (media: HTMLMediaElement) => {
-    let tracks: AudioTrackList = getPrivate(media).audioTracks;
-    if (!tracks) {
-      tracks = new AudioTrackList();
-      getPrivate(media).audioTracks = tracks;
-
-      // Sync native tracks to shim track list
-      if (getNativeAudioTracks) {
-        const nativeTracks = getNativeAudioTracks.call(media);
-
-        for (const nativeTrack of nativeTracks) {
-          addAudioTrack(media, nativeTrack);
-        }
-
-        nativeTracks.addEventListener('change', () => {
-          tracks.dispatchEvent(new Event('change'));
-        });
-
-        nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
-          // Note: adding native track instances to the shim track list here.
-          // This works because the API is identical and change event is forwarded.
-          // If tracks were manually added prevent native tracks from being added.
-          if (![...tracks].some(t => t instanceof AudioTrack)) {
-            addAudioTrack(media, event.track as AudioTrack);
-          }
-        });
-
-        nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
-          removeAudioTrack(event.track as AudioTrack);
-        });
-      }
-    }
-    return tracks;
-  }
-
   // @ts-ignore
   if (!('videoRenditions' in MediaElementClass.prototype)) {
     // @ts-ignore
@@ -225,4 +149,82 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
   }
 
   return MediaElementClass;
+}
+
+function getBaseMediaTracksFn(MediaElementClass: any, type: string) {
+  if (MediaElementClass?.prototype) {
+    return Object.getOwnPropertyDescriptor(MediaElementClass.prototype, `${type}Tracks`)?.get;
+  }
+}
+
+function getVideoTracks(media: any) {
+  let tracks: VideoTrackList = getPrivate(media).videoTracks;
+  if (!tracks) {
+    tracks = new VideoTrackList();
+    getPrivate(media).videoTracks = tracks;
+
+    // Sync native tracks to shim track list
+    if (nativeVideoTracksFn) {
+      // If media is not a native media element, make it accessible via media.nativeEl.
+      const nativeTracks = nativeVideoTracksFn.call(media.nativeEl ?? media);
+
+      for (const nativeTrack of nativeTracks) {
+        addVideoTrack(media, nativeTrack);
+      }
+
+      nativeTracks.addEventListener('change', () => {
+        tracks.dispatchEvent(new Event('change'));
+      });
+
+      nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
+        // Note: adding native track instances to the shim track list here.
+        // This works because the API is identical and change event is forwarded.
+        // If tracks were manually added prevent native tracks from being added.
+        if (![...tracks].some(t => t instanceof VideoTrack)) {
+          addVideoTrack(media, event.track as VideoTrack);
+        }
+      });
+
+      nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
+        removeVideoTrack(event.track  as VideoTrack);
+      });
+    }
+  }
+  return tracks;
+}
+
+function getAudioTracks(media: any) {
+  let tracks: AudioTrackList = getPrivate(media).audioTracks;
+  if (!tracks) {
+    tracks = new AudioTrackList();
+    getPrivate(media).audioTracks = tracks;
+
+    // Sync native tracks to shim track list
+    if (nativeAudioTracksFn) {
+      // If media is not a native media element, make it accessible via media.nativeEl.
+      const nativeTracks = nativeAudioTracksFn.call(media.nativeEl ?? media);
+
+      for (const nativeTrack of nativeTracks) {
+        addAudioTrack(media, nativeTrack);
+      }
+
+      nativeTracks.addEventListener('change', () => {
+        tracks.dispatchEvent(new Event('change'));
+      });
+
+      nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
+        // Note: adding native track instances to the shim track list here.
+        // This works because the API is identical and change event is forwarded.
+        // If tracks were manually added prevent native tracks from being added.
+        if (![...tracks].some(t => t instanceof AudioTrack)) {
+          addAudioTrack(media, event.track as AudioTrack);
+        }
+      });
+
+      nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
+        removeAudioTrack(event.track as AudioTrack);
+      });
+    }
+  }
+  return tracks;
 }

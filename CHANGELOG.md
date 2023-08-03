@@ -1,3 +1,12 @@
+## [0.2.2](https://github.com/muxinc/media-tracks/compare/v0.2.1...v0.2.2) (2023-08-03)
+
+
+### Bug Fixes
+
+* tracks accessed via a custom media element ([#8](https://github.com/muxinc/media-tracks/issues/8)) ([e30b3f6](https://github.com/muxinc/media-tracks/commit/e30b3f660e65585fd7c01dc35a4d8c93eb427896))
+
+
+
 ## [0.2.1](https://github.com/muxinc/media-tracks/compare/v0.2.0...v0.2.1) (2023-07-14)
 
 

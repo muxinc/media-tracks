@@ -31,7 +31,9 @@ export function addVideoTrack(media: HTMLMediaElement, track: VideoTrack) {
 }
 
 export function removeVideoTrack(track: VideoTrack) {
-  const trackList: VideoTrackList = getPrivate(track).media.videoTracks;
+  const trackList: VideoTrackList = getPrivate(track).media?.videoTracks;
+  if (!trackList) return;
+
   const trackSet: Set<VideoTrack> = getPrivate(trackList).trackSet;
   trackSet.delete(track);
 

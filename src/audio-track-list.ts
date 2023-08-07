@@ -31,7 +31,9 @@ export function addAudioTrack(media: HTMLMediaElement, track: AudioTrack) {
 }
 
 export function removeAudioTrack(track: AudioTrack) {
-  const trackList: AudioTrackList = getPrivate(track).media.audioTracks;
+  const trackList: AudioTrackList = getPrivate(track).media?.audioTracks;
+  if (!trackList) return;
+
   const trackSet: Set<AudioTrack> = getPrivate(trackList).trackSet;
   trackSet.delete(track);
 

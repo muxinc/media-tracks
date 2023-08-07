@@ -1,3 +1,12 @@
+## [0.2.3](https://github.com/muxinc/media-tracks/compare/v0.2.2...v0.2.3) (2023-08-07)
+
+
+### Bug Fixes
+
+* type error & native tracks bug ([#9](https://github.com/muxinc/media-tracks/issues/9)) ([50235bb](https://github.com/muxinc/media-tracks/commit/50235bb39d72057c098a9341b1695fb36482a6d0))
+
+
+
 ## [0.2.2](https://github.com/muxinc/media-tracks/compare/v0.2.1...v0.2.2) (2023-08-03)
 
 

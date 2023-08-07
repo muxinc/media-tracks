@@ -179,10 +179,17 @@ function getVideoTracks(media: any) {
       nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
         // Note: adding native track instances to the shim track list here.
         // This works because the API is identical and change event is forwarded.
-        // If tracks were manually added prevent native tracks from being added.
-        if (![...tracks].some(t => t instanceof VideoTrack)) {
-          addVideoTrack(media, event.track as VideoTrack);
+        // If tracks were manually added prevent native tracks from being added...
+
+        if ([...tracks].some(t => t instanceof VideoTrack)) {
+          // ...and remove previously added native tracks.
+          for (const nativeTrack of nativeTracks) {
+            removeVideoTrack(nativeTrack as VideoTrack);
+          }
+          return;
         }
+
+        addVideoTrack(media, event.track as VideoTrack);
       });
 
       nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {
@@ -215,10 +222,17 @@ function getAudioTracks(media: any) {
       nativeTracks.addEventListener('addtrack', (event: TrackEvent) => {
         // Note: adding native track instances to the shim track list here.
         // This works because the API is identical and change event is forwarded.
-        // If tracks were manually added prevent native tracks from being added.
-        if (![...tracks].some(t => t instanceof AudioTrack)) {
-          addAudioTrack(media, event.track as AudioTrack);
+        // If tracks were manually added prevent native tracks from being added...
+
+        if ([...tracks].some(t => t instanceof AudioTrack)) {
+          // ...and remove previously added native tracks.
+          for (const nativeTrack of nativeTracks) {
+            removeAudioTrack(nativeTrack as AudioTrack);
+          }
+          return;
         }
+
+        addAudioTrack(media, event.track as AudioTrack);
       });
 
       nativeTracks.addEventListener('removetrack', (event: TrackEvent) => {

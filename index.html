@@ -67,6 +67,10 @@
       // Audio tracks
       // Add audio tracks to select menu
       // Enable / disable audio tracks from select
+      myVideo.audioTracks.addEventListener('removetrack', ({ track }) => {
+        audioselect.querySelector(`[value="${track.id}"]`)?.remove();
+      });
+
       myVideo.audioTracks.addEventListener('addtrack', ({ track }) => {
         audioselect.append(new Option(
           track.label,

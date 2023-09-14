@@ -1,3 +1,12 @@
+## [0.2.4](https://github.com/muxinc/media-tracks/compare/v0.2.3...v0.2.4) (2023-09-14)
+
+
+### Bug Fixes
+
+* simplify cd script ([#10](https://github.com/muxinc/media-tracks/issues/10)) ([6e12532](https://github.com/muxinc/media-tracks/commit/6e1253298ee1d8d77f68ef601416f5df89971e89))
+
+
+
 ## [0.2.3](https://github.com/muxinc/media-tracks/compare/v0.2.2...v0.2.3) (2023-08-07)
 
 

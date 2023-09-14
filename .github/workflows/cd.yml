@@ -37,9 +37,4 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - run: npm run publish-release -- ${{ inputs.version_type }}
-        if: ${{ inputs.version_type != 'conventional' }}
-        shell: bash
-      - run: npm run publish-release
-        if: ${{ inputs.version_type == 'conventional' }}
-        shell: bash
+      - run: npx --yes wet-run@0.2.0 release ${{ inputs.version_type }} --changelog --github-release

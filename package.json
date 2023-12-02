@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "lint": "npx eslint src/*.ts",
-    "pretest": "npm run build",
+    "pretest": "npm run build -- --sourcemap=inline",
     "test": "wet run --coverage",
     "dev": "esbuild src/*.ts --format=esm --outdir=dist --servedir=.",
     "build": "rm -rf dist && esbuild src/*.ts --format=esm --outdir=dist",

@@ -68,6 +68,22 @@ test('fires queued removetrack event', async function (t) {
   t.equal(video.videoTracks.length, 0);
 });
 
+test('fires batched change event on selected video track', async function (t) {
+  const video = await fixture(`<video></video>`);
+  const main = video.addVideoTrack('main');
+  main.selected = true;
+  const sign = video.addVideoTrack('sign');
+  const commentary = video.addVideoTrack('commentary');
+
+  sign.selected = true;
+  commentary.selected = true;
+
+  await oneEvent(video.videoTracks, 'change');
+  t.ok(commentary.selected);
+  t.ok(!sign.selected);
+  t.ok(!main.selected);
+});
+
 test('fires queued addrendition event on selected video track', async function (t) {
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');

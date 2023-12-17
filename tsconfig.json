@@ -8,5 +8,6 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "strict": true
-  }
+  },
+  "include": ["dist/types/**/*"],
 }

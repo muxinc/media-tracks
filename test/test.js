@@ -9,26 +9,31 @@ import {
 } from '../dist/index.js';
 
 test('is an instance of VideoTrackList', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   t.ok(video.videoTracks instanceof VideoTrackList);
 });
 
 test('is an instance of AudioTrackList', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   t.ok(video.audioTracks instanceof AudioTrackList);
 });
 
 test('is an instance of VideoRenditionList', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   t.ok(video.videoRenditions instanceof VideoRenditionList);
 });
 
 test('is an instance of AudioRenditionList', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   t.ok(video.audioRenditions instanceof AudioRenditionList);
 });
 
 test('get video track with getTrackById', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track1 = video.addVideoTrack('main');
   track1.id = "1";
@@ -39,6 +44,7 @@ test('get video track with getTrackById', async function (t) {
 });
 
 test('get audio track with getTrackById', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track1 = video.addAudioTrack('main');
   track1.id = "1";
@@ -49,6 +55,7 @@ test('get audio track with getTrackById', async function (t) {
 });
 
 test('fires queued addtrack event on video tracks', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('sign');
   const event = await oneEvent(video.videoTracks, 'addtrack');
@@ -60,6 +67,7 @@ test('fires queued addtrack event on video tracks', async function (t) {
 });
 
 test('fires queued removetrack event', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   video.removeVideoTrack(track);
@@ -69,6 +77,7 @@ test('fires queued removetrack event', async function (t) {
 });
 
 test('fires batched change event on selected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const main = video.addVideoTrack('main');
   main.selected = true;
@@ -85,6 +94,7 @@ test('fires batched change event on selected video track', async function (t) {
 });
 
 test('fires queued addrendition event on selected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   track.selected = true;
@@ -99,6 +109,7 @@ test('fires queued addrendition event on selected video track', async function (
 });
 
 test('fires queued addrendition event on enabled audio track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addAudioTrack('main');
   track.enabled = true;
@@ -112,6 +123,7 @@ test('fires queued addrendition event on enabled audio track', async function (t
 });
 
 test('fires no addrendition event on unselected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
 
@@ -125,6 +137,7 @@ test('fires no addrendition event on unselected video track', async function (t)
 });
 
 test('fires no addrendition event on unenabled audio track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addAudioTrack('main');
 
@@ -138,6 +151,7 @@ test('fires no addrendition event on unenabled audio track', async function (t) 
 });
 
 test('fires queued removerendition event on selected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   track.selected = true;
@@ -150,6 +164,7 @@ test('fires queued removerendition event on selected video track', async functio
 });
 
 test('fires queued removerendition event on enabled audio track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addAudioTrack('main');
   track.enabled = true;
@@ -162,6 +177,7 @@ test('fires queued removerendition event on enabled audio track', async function
 });
 
 test('fires batched change event on selected video rendition', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   track.selected = true;
@@ -178,6 +194,7 @@ test('fires batched change event on selected video rendition', async function (t
 });
 
 test('fires batched change event on selected audio rendition', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addAudioTrack('main');
   track.enabled = true;
@@ -194,6 +211,7 @@ test('fires batched change event on selected audio rendition', async function (t
 });
 
 test('renditions of removed selected video tracks are not listed', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
 
   const track = video.addVideoTrack('main');
@@ -215,6 +233,7 @@ test('renditions of removed selected video tracks are not listed', async functio
 });
 
 test('renditions of removed enabled audio tracks are not listed', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
 
   const track = video.addAudioTrack('main');
@@ -236,6 +255,7 @@ test('renditions of removed enabled audio tracks are not listed', async function
 });
 
 test('fires queued addrendition callback on enabled audio track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addAudioTrack('main');
   track.enabled = true;
@@ -246,6 +266,7 @@ test('fires queued addrendition callback on enabled audio track', async function
 });
 
 test('fires queued addrendition callback on selected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   track.selected = true;
@@ -256,6 +277,7 @@ test('fires queued addrendition callback on selected video track', async functio
 });
 
 test('fires queued removerendition callback on selected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addVideoTrack('main');
   track.selected = true;
@@ -268,6 +290,7 @@ test('fires queued removerendition callback on selected video track', async func
 });
 
 test('fires queued removerendition callback on enabled audio track', async function (t) {
+  /** @type {HTMLVideoElement} */
   const video = await fixture(`<video></video>`);
   const track = video.addAudioTrack('main');
   track.enabled = true;

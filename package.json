@@ -15,7 +15,7 @@
   "scripts": {
     "lint": "npx eslint src/*.ts",
     "pretest": "npm run build -- --sourcemap=inline",
-    "test": "wet run --coverage",
+    "test": "wet test --coverage",
     "dev": "esbuild src/*.ts --format=esm --outdir=dist --servedir=.",
     "build": "rm -rf dist && esbuild src/*.ts --format=esm --outdir=dist",
     "postbuild": "tsc"
@@ -28,7 +28,7 @@
     "esbuild": "^0.19.8",
     "eslint": "^8.55.0",
     "typescript": "5.3.2",
-    "wet-run": "^0.9.1"
+    "wet-run": "^1.0.0"
   },
   "eslintConfig": {
     "root": true,

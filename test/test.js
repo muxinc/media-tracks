@@ -251,6 +251,17 @@ test('fires queued removerendition callback on selected video track', async func
   t.ok(true);
 });
 
+test('fires queued removerendition callback on enabled audio track', async function (t) {
+  const video = await fixture(`<video></video>`);
+  const track = video.addAudioTrack('main');
+  track.enabled = true;
+  await new Promise(resolve => (video.audioTracks.onaddtrack = resolve));
+  const rendition = track.addRendition('https://', 'aac');
+  track.removeRendition(rendition);
+  await new Promise(resolve => (video.audioRenditions.onremoverendition = resolve));
+  t.ok(true);
+});
+
 async function fixture(html) {
   const template = document.createElement('template');
   template.innerHTML = html;

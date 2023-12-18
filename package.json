@@ -2,6 +2,16 @@
   "name": "media-tracks",
   "version": "0.3.0",
   "description": "Polyfill audio and video tracks with renditions.",
+  "author": "@muxinc",
+  "license": "MIT",
+  "homepage": "https://github.com/muxinc/media-tracks#readme",
+  "bugs": {
+    "url": "https://github.com/muxinc/media-tracks/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muxinc/media-tracks.git"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,8 +31,6 @@
     "build": "rm -rf dist && esbuild src/*.ts --format=esm --outdir=dist",
     "postbuild": "tsc"
   },
-  "author": "@muxinc",
-  "license": "MIT",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",

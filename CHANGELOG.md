@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/muxinc/media-tracks/compare/v0.2.4...v0.3.0) (2023-12-18)
+
+
+### Features
+
+* improve types, mixin vs global + increase coverage ([#12](https://github.com/muxinc/media-tracks/issues/12)) ([4ead594](https://github.com/muxinc/media-tracks/commit/4ead594241f90058da4841866535e31637b4f775))
+
+
+
 ## [0.2.4](https://github.com/muxinc/media-tracks/compare/v0.2.3...v0.2.4) (2023-09-14)
 
 

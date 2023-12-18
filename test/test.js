@@ -313,6 +313,26 @@ test('fires queued removerendition callback on enabled audio track', async funct
   t.ok(true);
 });
 
+test('fires queued removetrack callback on selected video track', async function (t) {
+  /** @type {HTMLVideoElement} */
+  const video = await fixture(`<video></video>`);
+  const track = video.addVideoTrack('main');
+  track.selected = true;
+  video.removeVideoTrack(track);
+  await new Promise(resolve => (video.videoTracks.onremovetrack = resolve));
+  t.ok(true);
+});
+
+test('fires queued removetrack callback on enabled audio track', async function (t) {
+  /** @type {HTMLVideoElement} */
+  const video = await fixture(`<video></video>`);
+  const track = video.addAudioTrack('main');
+  track.enabled = true;
+  video.removeAudioTrack(track);
+  await new Promise(resolve => (video.audioTracks.onremovetrack = resolve));
+  t.ok(true);
+});
+
 async function fixture(html) {
   const template = document.createElement('template');
   template.innerHTML = html;

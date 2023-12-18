@@ -4,7 +4,7 @@
   "description": "Polyfill audio and video tracks with renditions.",
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./polyfill": "./dist/polyfill.js"
@@ -15,8 +15,9 @@
   "scripts": {
     "lint": "npx eslint src/*.ts",
     "pretest": "npm run build -- --sourcemap=inline",
-    "test": "wet test --coverage",
-    "dev": "esbuild src/*.ts --format=esm --outdir=dist --servedir=.",
+    "test": "npm run test:types && wet test --coverage",
+    "test:types": "tsc test/test.js --target esnext --noEmit --allowJs",
+    "dev": "tsc -w & esbuild src/*.ts --format=esm --outdir=dist --servedir=. --watch=forever",
     "build": "rm -rf dist && esbuild src/*.ts --format=esm --outdir=dist",
     "postbuild": "tsc"
   },

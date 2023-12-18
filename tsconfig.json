@@ -4,10 +4,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "rootDir": "src",
-    "outDir": "./dist/types",
+    "outDir": "dist",
     "declaration": true,
     "emitDeclarationOnly": true,
     "strict": true
-  },
-  "include": ["dist/types/**/*"],
+  }
 }

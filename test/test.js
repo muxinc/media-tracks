@@ -1,12 +1,24 @@
 import { test } from 'zora';
 
-import '../dist/polyfill.js';
+import '../dist/global.js';
+import { MediaTracksMixin } from '../dist/mixin.js';
 import {
   VideoTrackList,
   VideoRenditionList,
   AudioTrackList,
   AudioRenditionList
 } from '../dist/index.js';
+
+MediaTracksMixin(globalThis.HTMLMediaElement);
+
+test('adding methods to simple class', async function (t) {
+  class Super {}
+  const Sub = MediaTracksMixin(Super);
+  t.ok(Sub.prototype.videoTracks instanceof VideoTrackList);
+
+  const obj = new Sub();
+  t.ok(obj.videoTracks instanceof VideoTrackList);
+});
 
 test('is an instance of VideoTrackList', async function (t) {
   /** @type {HTMLVideoElement} */

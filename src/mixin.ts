@@ -8,24 +8,23 @@ import { getPrivate } from './utils.js';
 
 import type { TrackEvent } from './track-event.js';
 
-type VideoTrackType = typeof VideoTrack;
-type AudioTrackType = typeof AudioTrack;
-
-declare global {
-  var VideoTrack: VideoTrackType; // eslint-disable-line
-  var AudioTrack: AudioTrackType; // eslint-disable-line
-
-  interface HTMLMediaElement {
-    videoTracks: VideoTrackList;
-    audioTracks: AudioTrackList;
-    addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
-    addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
-    removeVideoTrack(track: VideoTrack): void;
-    removeAudioTrack(track: AudioTrack): void;
-    videoRenditions: VideoRenditionList;
-    audioRenditions: AudioRenditionList;
-  }
+declare class MediaTracks {
+  videoTracks: VideoTrackList;
+  audioTracks: AudioTrackList;
+  addVideoTrack(kind: string, label?: string, language?: string): VideoTrack;
+  addAudioTrack(kind: string, label?: string, language?: string): AudioTrack;
+  removeVideoTrack(track: VideoTrack): void;
+  removeAudioTrack(track: AudioTrack): void;
+  videoRenditions: VideoRenditionList;
+  audioRenditions: AudioRenditionList;
 }
+
+declare type Constructor<T> = {
+  new (...args: any[]): T;
+  prototype: T;
+}
+
+export type WithMediaTracks<T> = T & Constructor<MediaTracks>;
 
 const nativeVideoTracksFn = getBaseMediaTracksFn(globalThis.HTMLMediaElement, 'video');
 const nativeAudioTracksFn = getBaseMediaTracksFn(globalThis.HTMLMediaElement, 'audio');
@@ -40,7 +39,7 @@ const nativeAudioTracksFn = getBaseMediaTracksFn(globalThis.HTMLMediaElement, 'a
 // We also want to add / remove tracks manually which is not
 // possible in the native implementations afaik.
 
-export function MediaTracksMixin<T>(MediaElementClass: T): T {
+export function MediaTracksMixin<T>(MediaElementClass: T): WithMediaTracks<T> {
   // @ts-ignore
   if (!MediaElementClass?.prototype) return MediaElementClass;
 
@@ -148,7 +147,7 @@ export function MediaTracksMixin<T>(MediaElementClass: T): T {
     return renditions;
   }
 
-  return MediaElementClass;
+  return MediaElementClass as unknown as WithMediaTracks<T>;
 }
 
 function getBaseMediaTracksFn(MediaElementClass: any, type: string) {
